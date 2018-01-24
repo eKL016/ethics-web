@@ -7,7 +7,7 @@ var Admin = require('../models/admins');
 passport.use(new LocalStrategy(Admin.authenticate()));
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'Express', current_user:req.user});
 });
 
 router.post('/',

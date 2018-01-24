@@ -9,15 +9,22 @@
     <% include ./partials/navbar.ejs %>
     <div class="container">
       <br><br>
+
       <div class="row">
         <div class="col-lg-2"></div>
         <div class="col-lg-8">
           <div class="card">
             <div class="card-header bg-dark text-white">
-              管理員登入
+              管理者登入
             </div>
             <form action="/admin/login" method="post">
-              <br><br>
+              <br>
+              <% if (alert===403) {%>
+                <div class="alert alert-danger col-lg-12" role="alert" style="margin:0 5%;width:90%">
+                    管理者帳戶或密碼錯誤！
+                </div>
+              <%} %>
+              <br>
               <div class="form-group row">
                   <div class="col-lg-1"></div>
                   <label for="username" class="col-lg-2 col-form-label">帳號</label>
@@ -36,7 +43,7 @@
                   <div class="col-lg-1"></div>
               </div>
               <br>
-              <button type="submit" class="btn btn-success btn-block" style="margin:0 5%;width:90%">登入</button>
+              <button type="submit" class="w-75 mx-auto btn btn-success btn-block">登入</button>
               <br>
             </form>
           </div>

@@ -13,21 +13,29 @@ router.get('/', function(req, res, next) {
 });
 router.get('/login', function(req, res, next){
   if (req.user) res.redirect("/admin")
-  else res.render('admin_login', { title: '管理員登入'})
+  else res.render('admin_login', { title: '管理員登入', alert: 0, current_user:req.user})
 });
-router.post('/login',  passport.authenticate('local'), function(req, res) {
+router.post('/login', function(req, res) {
+    console.log(req.body)
     Admin.findByUsername(req.body.username, function(err, admin) {
       if (!admin) {
-          res.redirect("/admin/login");
+          res.render("admin_login", { title: '管理員登入', alert: 403, current_user:req.user});
       } else {
           admin.authenticate(req.body.password, function(err, admin) {
-              if (!admin) res.redirect("/admin/login");
-              else res.redirect("/admin");
-
+              if (!admin) res.render("admin_login", { title: '管理員登入', alert: 403, current_user:req.user});
+              else {
+                req.login(admin,function(err){
+                    if(err) return next(err);
+                    return res.redirect("/admin");
+                });
+              }
           })
       }
     })
 });
-
+router.get('/logout',function(req, res){
+  req.logout();
+  res.redirect('/admin');
+});
 
 module.exports = router;

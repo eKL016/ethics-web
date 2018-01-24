@@ -3,25 +3,30 @@ var router = express.Router();
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
-var Admin = require('../models/admins');
-passport.use(new LocalStrategy(Admin.authenticate()));
+const Admin = require('../models/admins');
+passport.use(Admin.createStrategy());
+passport.serializeUser(Admin.serializeUser());
+passport.deserializeUser(Admin.deserializeUser());
 router.get('/', function(req, res, next) {
-  passport.authenticate('local', { successRedirect: '/', failureRedirect: '/', failureFlash: '錯誤的管理者名稱或密碼！'})
+  if (req.user) res.send("Logged in")
+  else res.redirect("/admin/login")
 });
+router.get('/login', function(req, res, next){
+  if (req.user) res.redirect("/admin")
+  else res.render('admin_login', { title: '管理員登入'})
+});
+router.post('/login',  passport.authenticate('local'), function(req, res) {
+    Admin.findByUsername(req.body.username, function(err, admin) {
+      if (!admin) {
+          res.redirect("/admin/login");
+      } else {
+          admin.authenticate(req.body.password, function(err, admin) {
+              if (!admin) res.redirect("/admin/login");
+              else res.redirect("/admin");
 
-router.post('/',
-function(req, res) {
-            var password = req.body.password;
-	    console.log(req.body)
-            Admin.register(new Admin(req.body), password, function(err, account) {
-                if (err) {
-                    console.log(new Date() + ' ' + err);
-                    return res.json({msg:err});
-                } else {
-                    console.log('學員' + Admin.username + ' 已於 ' + new Date() + ' 報名');
-                }
-                return res.json({msg:"success"});
-            });
+          })
+      }
+    })
 });
 
 

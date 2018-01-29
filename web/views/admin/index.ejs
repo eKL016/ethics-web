@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include ../partials/base.ejs %>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <% include ../partials/navbar.ejs %>
+    <div class="container">
+      <br><br>
+
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-dark text-white">
+              管理者登入
+            </div>
+            <form action="/exps/init" method="post">
+              <br><br>
+              <button type="submit" class="w-75 mx-auto btn btn-success btn-block">開始新測驗</button>
+              <br><br>
+            </form>
+          </div>
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+    </div>
+    <% include ../partials/bootstrap-scripts.ejs %>
+  </body>
+</html>

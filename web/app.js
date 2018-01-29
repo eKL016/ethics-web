@@ -11,7 +11,8 @@ var partials = require('express-partials');
 var session = require('cookie-session');
 var index = require('./routes/index');
 var users = require('./routes/users');
-var admins = require('./routes/admins')
+var admins = require('./routes/admins');
+var exps = require('./routes/exps');
 var app = express();
 
 mongoose.connect('mongodb://localhost/web-liu');
@@ -39,6 +40,7 @@ app.use(passport.session());
 app.use('/', index);
 app.use('/users', users);
 app.use('/admin', admins);
+app.use('/exps', exps);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

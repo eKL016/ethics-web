@@ -3,26 +3,29 @@ var router = express.Router();
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+
 const Admin = require('../models/admins');
+const Exp = require('../models/exps');
 passport.use(Admin.createStrategy());
 passport.serializeUser(Admin.serializeUser());
 passport.deserializeUser(Admin.deserializeUser());
+
 router.get('/', function(req, res, next) {
-  if (req.user) res.send("Logged in")
+  if (req.user) res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user})
   else res.redirect("/admin/login")
 });
+
 router.get('/login', function(req, res, next){
   if (req.user) res.redirect("/admin")
-  else res.render('admin_login', { title: '管理員登入', alert: 0, current_user:req.user})
+  else res.render('admin/login', { title: '管理員登入', alert: 0, current_user:req.user})
 });
 router.post('/login', function(req, res) {
-    console.log(req.body)
     Admin.findByUsername(req.body.username, function(err, admin) {
       if (!admin) {
-          res.render("admin_login", { title: '管理員登入', alert: 403, current_user:req.user});
+          res.render("admin/login", { title: '管理員登入', alert: 403, current_user:req.user});
       } else {
           admin.authenticate(req.body.password, function(err, admin) {
-              if (!admin) res.render("admin_login", { title: '管理員登入', alert: 403, current_user:req.user});
+              if (!admin) res.render("admin/login", { title: '管理員登入', alert: 403, current_user:req.user});
               else {
                 req.login(admin,function(err){
                     if(err) return next(err);
@@ -33,6 +36,19 @@ router.post('/login', function(req, res) {
       }
     })
 });
+
+router.post('/register', function(req, res) {
+  Admin.register(new Admin(req.body), req.body.password, function(err, admin) {
+      if (err) {
+          console.log(new Date() + ' ' + err);
+          return res.json({msg:err});
+      } else {
+          console.log('管理者' + admin.name + ' 已於 ' + new Date() + ' 寫入資料庫');
+      }
+      return res.json({msg:"success"});
+  });
+});
+
 router.get('/logout',function(req, res){
   req.logout();
   res.redirect('/admin');

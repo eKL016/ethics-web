@@ -4,24 +4,24 @@ var router = express.Router();
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
-const Admin = require('../models/admins');
+const User = require('../models/users');
 const Exp = require('../models/exps');
-passport.use(Admin.createStrategy());
-passport.serializeUser(Admin.serializeUser());
-passport.deserializeUser(Admin.deserializeUser());
+passport.use(User.createStrategy());
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 router.get('/', function(req, res, next) {
-  if (req.user) res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user})
+  if ( req.user && req.user.name != null ) res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user})
   else res.redirect("/admin/login")
 });
 
 router.get('/login', function(req, res, next){
-  if (req.user) res.redirect("/admin")
+  if (req.user && req.user.name != null ) res.redirect("/admin")
   else res.render('admin/login', { title: '管理員登入', alert: 0, current_user:req.user})
 });
 router.post('/login', function(req, res) {
-    Admin.findByUsername(req.body.username, function(err, admin) {
-      if (!admin) {
+    User.findByUsername(req.body.username, function(err, admin) {
+      if (!admin || admin.name == null ) {
           res.render("admin/login", { title: '管理員登入', alert: 403, current_user:req.user});
       } else {
           admin.authenticate(req.body.password, function(err, admin) {
@@ -38,19 +38,20 @@ router.post('/login', function(req, res) {
 });
 
 router.post('/register', function(req, res) {
-  Admin.register(new Admin(req.body), req.body.password, function(err, admin) {
-      if (err) {
-          console.log(new Date() + ' ' + err);
-          return res.json({msg:err});
-      } else {
-          console.log('管理者' + admin.name + ' 已於 ' + new Date() + ' 寫入資料庫');
-      }
-      return res.json({msg:"success"});
+  User.register(new User(req.body), req.body.password, function(err, admin) {
+    admin.name = req.body.name;
+    if (err) {
+        console.log(new Date() + ' ' + err);
+        return res.json({msg:err});
+    } else {
+        console.log('管理者' + admin.name + ' 已於 ' + new Date() + ' 寫入資料庫');
+    }
+    return res.json({msg:"success"});
   });
 });
 router.post('/init_exp', function(req,res){
-  if(req.user === undefined) res.redirect("/admin/login");
-  Admin.findById(req.user._id, function(err,doc){
+  if(req.user === undefined || req.user.name == null) res.redirect("/admin/login");
+  User.findById(req.user._id, function(err,doc){
     if( err ) console.log(err);
     if( !doc ) {
       res.redirect("/admin/login");

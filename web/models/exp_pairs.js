@@ -4,7 +4,7 @@ var Schema = mongoose.Schema;
 
 var Exp_pair = new Schema({
     subject_A: {type: mongoose.Schema.Types.ObjectId, ref: 'Subject'},
-    subject_B: {type: mongoose.Schema.Types.ObjectId, ref: 'Subject'},
+    subject_B: {type: mongoose.Schema.Types.ObjectId, ref: 'Subject', 'default': '0'},
     Exp: {type: String, ref: 'Exp'}
   }
 );

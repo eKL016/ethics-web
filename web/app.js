@@ -12,6 +12,7 @@ var session = require('cookie-session');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var admins = require('./routes/admins');
+var subjects = require('./routes/subjects');
 var exps = require('./routes/exps');
 var app = express();
 
@@ -28,10 +29,11 @@ app.set('port', process.env.PORT || 3000);
 app.use(partials());
 app.use(logger('dev'));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(cookieParser('001'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-    keys: ['001', '002']
+    keys: ['001','002'],
+    secret: '001'
 }));
 
 app.use(passport.initialize());
@@ -40,7 +42,9 @@ app.use(passport.session());
 app.use('/', index);
 app.use('/users', users);
 app.use('/admin', admins);
+app.use('/subjects', subjects);
 app.use('/exps', exps);
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

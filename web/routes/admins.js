@@ -48,7 +48,23 @@ router.post('/register', function(req, res) {
       return res.json({msg:"success"});
   });
 });
+router.post('/init_exp', function(req,res){
+  if(req.user === undefined) res.redirect("/admin/login");
+  Admin.findById(req.user._id, function(err,doc){
+    if( err ) console.log(err);
+    if( !doc ) {
+      res.redirect("/admin/login");
+    } else {
+      Exp.create({ performer: req.user.name },function(err,exp){
 
+          url = req.protocol + '://' + req.get('host') + '/exps/' + exp._id;
+
+          return res.render("exps/prepare", { title: '測驗準備', alert: 0, current_user:req.user, url: url })
+        }
+      )
+    }
+  })
+});
 router.get('/logout',function(req, res){
   req.logout();
   res.redirect('/admin');

@@ -2,30 +2,47 @@ var express = require('express');
 var router = express.Router();
 
 var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
 
-const Admin = require('../models/admins');
+const Subject = require('../models/subjects');
 const Exp = require('../models/exps');
-passport.use(Admin.createStrategy());
-passport.serializeUser(Admin.serializeUser());
-passport.deserializeUser(Admin.deserializeUser());
+const Exp_pair = require('../models/exp_pairs')
+passport.use(Subject.createStrategy());
+passport.serializeUser(Subject.serializeUser());
+passport.deserializeUser(Subject.deserializeUser());
 
-router.post('/init', function(req,res){
-  if(req.user === undefined) res.redirect("/admin/login");
-  Admin.findById(req.user._id, function(err,doc){
-    if( err ) console.log(err);
-    if( !doc ) {
-      res.redirect("/admin/login");
-    } else {
-      Exp.create({ performer: req.user.name },function(err,exp){
 
-          url = req.protocol + '://' + req.get('host') + '/exps/' + exp._id;
+router.post('/:num',function(req, res){
+  console.log(req);
+  if(req.user === undefined) console.log("undefined");
+  else {
+    console.log(req.user)
+    Subject.findById(req.user._id, function(err, subject){
+      if( err || !subject ) return res.redirect('/subjects/apply');
+      Exp.findById(req.num, function(err, exp){
+        if( err || !exp ) return res.redirect('/exps/join');
+        Exp_pairs.find({ 'Exp': exp._id, 'subject_B': '0'}, function(err, pairs){
+            if( pairs == {} ){
+              Exp_pairs.create({'Exp': exp, 'subject_A': subject._id}, function(err){
+                if(err) console.log(err);
+                else return res.json({msg:'wait B'});
+              });
+            }
+            else {
+              rival = Math.random() * 10000 % pairs.length;
+              match_pair = pairs[rival];
+              match_pair.subject_B = subject._id;
+              match_pair.save(function(err){
+                if(err) console.log(err);
+                else return res.json({msg:'wait EOM'});
+              })
+            }
 
-          return res.render("exps/prepare", { title: '測驗準備', alert: 0, current_user:req.user, url: url })
-        }
-      )
-    }
-  })
+          }
+        )
+      })
+
+
+    });
+  }
 });
-
 module.exports = router;

@@ -16,6 +16,10 @@ const User = new Schema({
       type:String,
       'default': null
     },
+    exp: {type: String,
+      ref: 'Exp',
+      'default': null
+    },
     school: String,
     department: String,
     grades: String,

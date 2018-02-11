@@ -16,10 +16,7 @@ const User = new Schema({
       type:String,
       'default': null
     },
-    exp: {type: String,
-      ref: 'Exp',
-      'default': null
-    },
+    local: Boolean,
     school: String,
     department: String,
     grades: String,

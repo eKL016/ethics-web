@@ -1,48 +1,60 @@
 var express = require('express');
 var router = express.Router();
-
+var validator = require("email-validator");
 var passport = require('passport');
 
 const User = require('../models/users');
 const Exp = require('../models/exps');
-const Exp_pair = require('../models/exp_pairs')
+const Exp_pair = require('../models/exp_pairs');
+const Subject_queue = require('../models/subject_queue')
 passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-
+router.get('/', function(req, res){
+  Exp.find({}, function(err, exps){
+    if(err) console.log(err);
+    return res.json(exps);
+  })
+});
+router.post('/:num/start', function(req,res){
+  if(!req.user) return res.redirect('/');
+  else if(validator.validate(req.user.username)){
+    Exp.findById(req.params.num, function(err, exp){
+      if(err || !exp ) return res.json({msg:'Unable to start the exp'});
+      exp.started_at = Date.now();
+      exp.save(function(err, updated_exp){
+        if(err || !updated_exp) return res.json({msg:'Unable to start the exp'});
+        else{
+          res.redirect('/exps')
+        }
+      });
+    })
+  }
+  else return res.redirect('/')
+});
 router.post('/:num/apply',function(req, res){
   console.log(req.user);
-  if(req.user === undefined) console.log("undefined");
-  else {
-    console.log(req.user)
-    User.findOne({ 'username': req.user.username }, function(err, subject){
-      if( err || !subject ) return res.redirect('/');
-      console.log('受試者 '+req.user.username+" 已成功報名測試 "+req.params.num)
-      Exp.findById(req.params.num, function(err, exp){
-        if( err || !exp ) return res.redirect('/');
-        if(exp.started) return res.redirect('/');
-        else{
-          subject.exp = exp._id;
-          subject.save();
-          res.json({ msg:"successfully join"+ subject.exp })
-        }
-      })
-
-
+  if(!req.user) return res.json({msg: 'undefined'});
+  else{
+    Exp.findOne({'_id': req.params.num}, function(err, exp){
+      if(err || !exp) return res.json({msg: 'Unable to fetch an exp' });
+      if(Date.now() - exp.started_at > 1800000) return res.json({msg: 'Experiment expires!'})
+      else{
+        Subject_queue.create({'subject': req.user, 'exp': exp},function(err, queue){
+          return res.json(queue);
+        });
+      }
     });
   }
 });
-router.post('/:num/perform', function(req, res){
-  //Need fix
-  User.find({'paired': false, 'name': null}, function(err,rivals){
-    rival = Math.floor(Math.random() * 10000 % rivals.length);
-    console.log(rivals)
-    console.log(rival)
-    Exp_pair.create({'Exp': exp, 'subject_A': rivals[rival]._id, 'subject_B': subject._id}, function(err){
-      if(err) console.log(err);
-      else return res.json({msg:'Paired.'});
-    });
+router.get('/:num/perform', function(req, res){
+  Exp.findOne({'_id': req.params.num}, function(err, exp){
+    if(err || !exp) return res.json({msg: 'Unable to fetch an exp'})
+    Subject_queue.findOne({'subject': req.user,'exp': queue},function(){
+      if(err || !queue) res.json({msg: 'Fail to fetch queue'});
+      return res.render('exp/perform', {exp: exp._id, subject: subject._id})
+    })
   })
 });
 module.exports = router;

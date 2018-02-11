@@ -8,7 +8,7 @@ var Exp = new Schema({
       'default': shortid.generate
     },
     performer: String,
-    started: { type: Boolean, default: false}
+    started_at: { type: Date, default: null}
   },
   {
     timestamps: { createdAt: 'exp_date' }

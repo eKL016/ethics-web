@@ -21,7 +21,7 @@ router.get('/login', function(req, res, next){
 });
 router.post('/login', function(req, res) {
     User.findByUsername(req.body.username, function(err, admin) {
-      if (!admin || admin.name == null ) {
+      if (!admin) {
           res.render("admin/login", { title: '管理員登入', alert: 403, current_user:req.user});
       } else {
           admin.authenticate(req.body.password, function(err, admin) {

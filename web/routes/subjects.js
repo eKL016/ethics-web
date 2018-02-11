@@ -14,18 +14,29 @@ router.get('/apply', function(req, res){
   return res.render('subjects/apply');
 });
 router.post('/apply', function(req, res){
-  User.register(new User(req.body), req.body.password, function(err, subject) {
+  User.register(new User(req.body), "ethics-web", function(err, subject) {
       if (err) {
         console.log(new Date() + ' ' + err);
-        return res.json({msg:err});
+        return res.redirect('/');
       } else {
-        req.body.username = subject.username
-        passport.authenticate('subjects')(req, res, function () {
-          req.logIn(subject, function(err) {
-            if (err) { return next(err); }
-            return res.redirect('/');
+        req.body.password = "ethics-web";
+        if (req.body.username){
+          passport.authenticate('local')(req, res, function () {
+            req.logIn(subject, function(err) {
+              if (err) { return next(err); }
+              return res.redirect('/exps');
+            });
           });
-        })
+        }
+        else {
+          req.body.username = subject.username
+          passport.authenticate('local')(req, res, function () {
+            req.logIn(subject, function(err) {
+              if (err) { return next(err); }
+              return res.redirect('/exps');
+            });
+          });
+        }
       };
 
   });

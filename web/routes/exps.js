@@ -12,6 +12,12 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 router.get('/', function(req, res){
+  Exp.find({started_at: null}, function(err, exps){
+    if(err) console.log(err);
+    return res.json(exps);
+  })
+});
+router.get('/list', function(req, res){
   Exp.find({}, function(err, exps){
     if(err) console.log(err);
     return res.json(exps);
@@ -57,4 +63,10 @@ router.get('/:num/perform', function(req, res){
     })
   })
 });
+router.get('/local', function(req, res){
+  return res.render('exps/local', {title: '實驗確認', current_user:req.user});
+})
+router.post('/local', function(req, res){
+  return res.redirect(307,'/subjects/apply/'+req.body.code)
+})
 module.exports = router;

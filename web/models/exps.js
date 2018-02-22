@@ -11,7 +11,7 @@ var Exp = new Schema({
     started_at: { type: Date, default: null}
   },
   {
-    timestamps: { createdAt: 'exp_date' }
+    timestamps: { createdAt: 'created_at' }
   }
 );
 

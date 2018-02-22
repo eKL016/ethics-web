@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-
+var validator = require("email-validator");
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
@@ -11,12 +11,12 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 router.get('/', function(req, res, next) {
-  if ( req.user && req.user.name != null ) res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user})
+  if ( req.user && validator.validate(req.user.username)) res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user})
   else res.redirect("/admin/login")
 });
 
 router.get('/login', function(req, res, next){
-  if (req.user && req.user.name != null ) res.redirect("/admin")
+  if (req.user && validator.validate(req.user.username) ) res.redirect("/admin")
   else res.render('admin/login', { title: '管理員登入', alert: 0, current_user:req.user})
 });
 router.post('/login', function(req, res) {
@@ -50,21 +50,20 @@ router.post('/register', function(req, res) {
   });
 });
 router.post('/init_exp', function(req,res){
-  if(req.user === undefined || req.user.name == null) res.redirect("/admin/login");
-  User.findById(req.user._id, function(err,doc){
-    if( err ) console.log(err);
-    if( !doc ) {
-      res.redirect("/admin/login");
-    } else {
-      Exp.create({ performer: req.user.name },function(err,exp){
-
-          url = req.protocol + '://' + req.get('host') + '/exps/' + exp._id;
-
-          return res.render("exps/prepare", { title: '測驗準備', alert: 0, current_user:req.user, url: url })
-        }
-      )
-    }
-  })
+  if(req.user === undefined || !validator.validate(req.user.username) ) return res.redirect("/admin/login");
+  else{
+    User.findById(req.user._id, function(err,doc){
+      if( err ) console.log(err);
+      if( doc === undefined ) {
+        console.log("User not found");
+        return res.redirect("/admin/login");
+      } else{
+        Exp.create({ performer: req.user.name },function(err,exp){
+          return res.render("exps/prepare", { title: '測驗準備', alert: 0, current_user:req.user, url: exp._id })
+        });
+      };
+    });
+  };
 });
 router.get('/logout',function(req, res){
   req.logout();

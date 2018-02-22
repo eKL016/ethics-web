@@ -13,7 +13,7 @@ passport.deserializeUser(User.deserializeUser());
 router.get('/apply', function(req, res){
   return res.render('subjects/apply');
 });
-router.post('/apply', function(req, res){
+router.post('/apply/:num', function(req, res){
   User.register(new User(req.body), "ethics-web", function(err, subject) {
       if (err) {
         console.log(new Date() + ' ' + err);
@@ -33,7 +33,7 @@ router.post('/apply', function(req, res){
           passport.authenticate('local')(req, res, function () {
             req.logIn(subject, function(err) {
               if (err) { return next(err); }
-              return res.redirect('/exps');
+              return res.redirect(307,'/exps/'+req.params.num+'/apply');
             });
           });
         }

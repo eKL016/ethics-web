@@ -8,6 +8,7 @@ var Exp = new Schema({
       'default': shortid.generate
     },
     performer: String,
+    closed: {type: Boolean, default: false},
     started_at: { type: Date, default: null},
     question: {type: mongoose.Schema.Types.ObjectId, ref: 'Question'}
   },

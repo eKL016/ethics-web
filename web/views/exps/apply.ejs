@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include ../partials/base.ejs %>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <% include ../partials/navbar.ejs %>
+    <div class="container">
+      <br><br>
+
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-dark text-white">
+              測驗報名
+            </div>
+
+            <div class="w-75 mx-auto">
+              <br>
+              <p>
+                ＊表單填寫提交後，將於2天內收到e-mail通知信，並於實驗前一天再次寄發提醒信，請留意信箱查收<br>
+                ＊當天請務必提早或準時抵達，以利實驗流程順利進行<br>
+                ＊實驗進行間，不得使用手機、聊天交談等，以維護實驗完整性；若有不適者可中途離席<br>
+                ＊若有任何突發狀況臨時無法前來，請務必以e-mail／私訊／簡訊等方式通知<br>
+              </p>
+              <p>
+                以下資料請據實填寫，作為確認報名及聯絡之用<br>
+                實驗並不記名，為匿名制，僅以編號代之<br>
+                姓名、電話等個資將於實驗結束後銷毀，不作他用<br>
+                再次感謝您的參加與協助！<br>
+              </p>
+            </div>
+            <form action="/exps/apply" method="post">
+              <div class="form-group w-75 mx-auto">
+                <br><br>
+                <label for="exps">選擇場次</label>
+                <select class="form-control" id="exps" name="exps">
+                  <% for(i in exps) {%>
+                    <option value="<%= exps[i]._id %>"> <%= exps[i]._id %></option>
+                  <% } %>
+                </select>
+                </br>
+                <button type="submit" class="btn btn-primary btn-block">設定新實驗</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+    </div>
+    <% include ../partials/bootstrap-scripts.ejs %>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include ../partials/base.ejs %>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <% include ../partials/navbar.ejs %>
+    <div class="container">
+      <br><br>
+
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-dark text-white">
+              測驗開始
+            </div>
+            <form action="exps/start" method="post">
+              <div class="form-group w-75 mx-auto">
+                <br><br>
+                <label for="num">尚未開始之測驗</label>
+                <select class="form-control" id="num" name="num">
+                  <% for(i in exps) {%>
+                    <option value="<%= exps[i]._id %>"> <%= exps[i]._id + " Set by " +  exps[i].performer %></option>
+                  <% } %>
+                </select>
+                <br>
+
+                <button type="submit" class="btn btn-primary btn-block">開始</button>
+                <br>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+    </div>
+    <% include ../partials/bootstrap-scripts.ejs %>
+  </body>
+</html>

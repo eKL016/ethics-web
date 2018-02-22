@@ -28,14 +28,14 @@ router.get('/start', function(req, res){
   else if(validator.validate(req.user.username)){
     Exp.find({started_at: null}, function(err, exp){
       if(err || !exp ) return res.json({msg:'Unable to start the exp'});
-      return res.json(exp);
-    })
+        return res.render('exps/start',{ title: '測驗開始', alert: 0, current_user:req.user, exps: exp})
+      });
   }
 });
-router.post('/:num/start', function(req,res){
+router.post('/start', function(req,res){
   if(!req.user) return res.redirect('/');
   else if(validator.validate(req.user.username)){
-    Exp.findById(req.params.num, function(err, exp){
+    Exp.findById(req.body.num, function(err, exp){
       if(err || !exp ) return res.json({msg:'Unable to start the exp'});
       exp.started_at = Date.now();
       exp.save(function(err, updated_exp){
@@ -47,6 +47,12 @@ router.post('/:num/start', function(req,res){
     })
   }
   else return res.redirect('/')
+});
+router.get('/apply', function(req, res){
+  Exp.find({closed: false}, function(err, exps){
+    return res.render('exps/apply', { title: '測驗報名', alert: 0, current_user:req.user, exps:exps});
+  })
+
 });
 router.post('/:num/apply',function(req, res){
   console.log(req.user);

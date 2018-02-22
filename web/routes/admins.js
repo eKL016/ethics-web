@@ -14,7 +14,15 @@ router.get('/', function(req, res, next) {
   if ( req.user && validator.validate(req.user.username)) res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user})
   else res.redirect("/admin/login")
 });
-
+router.get('/exps', function(req,res, next){
+  if ( req.user && validator.validate(req.user.username)){
+    Exp.find({}, '_id', function(err, exps){
+      if(err || !exps) return console.log("Exp loading failed!")
+      else res.render('admin/exps', { title: '管理員選單', alert: 0, current_user:req.user, exps: exps})
+    })
+  }
+  else res.redirect("/admin/login")
+})
 router.get('/login', function(req, res, next){
   if (req.user && validator.validate(req.user.username) ) res.redirect("/admin")
   else res.render('admin/login', { title: '管理員登入', alert: 0, current_user:req.user})

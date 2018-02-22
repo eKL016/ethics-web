@@ -20,7 +20,8 @@ const User = new Schema({
     school: String,
     department: String,
     grades: String,
-    gender: Boolean
+    gender: Boolean,
+    answers: {type: mongoose.Schema.Types.ObjectId, ref: 'Answer'}
   }
 );
 

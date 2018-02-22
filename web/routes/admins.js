@@ -3,7 +3,7 @@ var router = express.Router();
 var validator = require("email-validator");
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
-
+const Question = require('../models/questions');
 const User = require('../models/users');
 const Exp = require('../models/exps');
 passport.use(User.createStrategy());
@@ -16,7 +16,7 @@ router.get('/', function(req, res, next) {
 });
 router.get('/exps', function(req,res, next){
   if ( req.user && validator.validate(req.user.username)){
-    Exp.find({}, '_id', function(err, exps){
+    Exp.find({started_at: {$lte : Date.now() - 1800000}}, function(err, exps){
       if(err || !exps) return console.log("Exp loading failed!")
       else res.render('admin/exps', { title: '管理員選單', alert: 0, current_user:req.user, exps: exps})
     })
@@ -57,6 +57,15 @@ router.post('/register', function(req, res) {
     return res.json({msg:"success"});
   });
 });
+router.get('/init_exp', function(req, res){
+  if(req.user === undefined || !validator.validate(req.user.username) ) return res.redirect("/admin/login");
+  else{
+    Question.find({}, function(err, qs){
+      if(err) console.log(err)
+      return res.render("exps/set", { title: '測驗準備', alert: 0, current_user:req.user, questions: qs})
+    })
+  }
+});
 router.post('/init_exp', function(req,res){
   if(req.user === undefined || !validator.validate(req.user.username) ) return res.redirect("/admin/login");
   else{
@@ -66,7 +75,7 @@ router.post('/init_exp', function(req,res){
         console.log("User not found");
         return res.redirect("/admin/login");
       } else{
-        Exp.create({ performer: req.user.name },function(err,exp){
+        Exp.create({ performer: req.user.name, question: req.body.questions },function(err,exp){
           return res.render("exps/prepare", { title: '測驗準備', alert: 0, current_user:req.user, url: exp._id })
         });
       };

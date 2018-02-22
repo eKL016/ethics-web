@@ -23,6 +23,15 @@ router.get('/list', function(req, res){
     return res.json(exps);
   })
 });
+router.get('/start', function(req, res){
+  if(!req.user) return res.redirect('/');
+  else if(validator.validate(req.user.username)){
+    Exp.find({started_at: null}, function(err, exp){
+      if(err || !exp ) return res.json({msg:'Unable to start the exp'});
+      return res.json(exp);
+    })
+  }
+});
 router.post('/:num/start', function(req,res){
   if(!req.user) return res.redirect('/');
   else if(validator.validate(req.user.username)){

@@ -15,16 +15,19 @@
         <div class="col-lg-8">
           <div class="card">
             <div class="card-header bg-dark text-white">
-              管理者選單
+              測驗準備
             </div>
-            <form action="admin/init_exp" method="post">
-              <br><br>
-              <button type="button" class="w-75 mx-auto btn btn-success btn-block" onclick="location.href='/admin/init_exp/'">安排新測驗</button>
-              <br>
-              <button type="button" class="w-75 mx-auto btn btn-success btn-block" onclick="location.href='/exps/start'">開始現場測驗</button>
-              <br>
-              <button type="button" class="w-75 mx-auto btn btn-success btn-block" onclick="location.href='/admin/exps'">下載測驗結果</button>
-              <br><br>
+            <form action="/admin/init_exp" method="post">
+              <div class="form-group w-75 mx-auto">
+                <br><br>
+                <label for="questions">選擇題庫</label>
+                <select class="form-control" id="questions" name="questions">
+                  <% for(i in questions) {%>
+                    <option value="<%= questions[i]._id %>"> <%= questions[i].title %></option>
+                  <% } %>
+                </select>
+                </br>
+                <button type="submit" class="btn btn-primary btn-block">設定新實驗</button>
             </form>
           </div>
         </div>

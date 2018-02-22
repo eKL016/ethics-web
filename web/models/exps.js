@@ -8,7 +8,8 @@ var Exp = new Schema({
       'default': shortid.generate
     },
     performer: String,
-    started_at: { type: Date, default: null}
+    started_at: { type: Date, default: null},
+    question: {type: mongoose.Schema.Types.ObjectId, ref: 'Question'}
   },
   {
     timestamps: { createdAt: 'created_at' }

@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var validator = require("email-validator");
 var passport = require('passport');
-
+const Subjects = require('../models/subjects')
 const User = require('../models/users');
 const Exp = require('../models/exps');
 const Exp_pair = require('../models/exp_pairs');
@@ -10,23 +10,89 @@ const Subject_queue = require('../models/subject_queue')
 passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
+function assign_pair(exp_id, subjects, pair_model){
+  console.log(seed)
+  response = []
+  for(i = 0; i < seed.length-1; i=i+2){
+    pair_model.create({'subject_A': subjects[seed[i]], 'subject_B':subjects[seed[i+1]], 'Exp':exp_id}, function(err, pair){
+      console.log(pair);
+      if(err) response.push(err)
+    })
+  }
+  return response
+}
+function shuffle(exp_id, subjects, Exp_pair, cb) {
+    var j, x, i;
+    for (i = seed.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = seed[i];
+        seed[i] = seed[j];
+        seed[j] = x;
+    }
+    setTimeout(() => {
+      return cb(exp_id, subjects, Exp_pair);
+    },3000);
+
+}
+
 
 router.get('/', function(req, res){
-  Exp.find({started_at: null}, function(err, exps){
+  if(!req.user){
+    return res.json({msg:"Must login first!"});
+  }
+  Exp.find({started: null}, function(err, exps){
     if(err) console.log(err);
     return res.json(exps);
   })
 });
 router.get('/list', function(req, res){
+  if(!req.user){
+    return res.json({msg:"Must login first!"});
+  }
   Exp.find({}, function(err, exps){
     if(err) console.log(err);
     return res.json(exps);
   })
 });
+router.get('/close/:id', function(req, res){
+  if(!req.user){
+    return res.json({msg:"Must login first!"});
+  }
+  else{
+    Exp.findById(req.params.id, function(err,exp){
+      if(err || !exp){
+        return res.json({msg:"Exp not found"});
+      }
+      else if(exp.performer_id != req.user.id){
+        return res.json({msg:"Unauthorized!"});
+      }
+      else if( exp.closed == true){
+        return res.json({msg:"Closed"})
+      }
+      else{
+        exp.closed = true;
+        if(err) return res.json({msg:"Attemped to close an exp fail"});
+        else{
+          console.log(exp)
+          Subject_queue.find({exp_id: String(exp._id)},'subject_id', function(err, subjects){
+            console.log(subjects);
+            seed = Object.keys(subjects);
+            response = shuffle(exp._id, subjects, Exp_pair, assign_pair);
+            if(!response) {
+              exp.save();
+              return res.json({msg:"Paired"});
+            }
+            console.log(response)
+          })
+        }
+      }
+    });
+  }
+});
 router.get('/start', function(req, res){
   if(!req.user) return res.redirect('/');
-  else if(validator.validate(req.user.username)){
-    Exp.find({started_at: null}, function(err, exp){
+  else{
+    Exp.find({started: null}, function(err, exp){
       if(err || !exp ) return res.json({msg:'Unable to start the exp'});
         return res.render('exps/start',{ title: '測驗開始', alert: 0, current_user:req.user, exps: exp})
       });
@@ -34,10 +100,10 @@ router.get('/start', function(req, res){
 });
 router.post('/start', function(req,res){
   if(!req.user) return res.redirect('/');
-  else if(validator.validate(req.user.username)){
+  else{
     Exp.findById(req.body.num, function(err, exp){
       if(err || !exp ) return res.json({msg:'Unable to start the exp'});
-      exp.started_at = Date.now();
+      exp.started = Date.now();
       exp.save(function(err, updated_exp){
         if(err || !updated_exp) return res.json({msg:'Unable to start the exp'});
         else{
@@ -46,42 +112,52 @@ router.post('/start', function(req,res){
       });
     })
   }
-  else return res.redirect('/')
+
 });
 router.get('/apply', function(req, res){
   Exp.find({closed: false}, function(err, exps){
     return res.render('exps/apply', { title: '測驗報名', alert: 0, current_user:req.user, exps:exps});
   })
-
 });
-router.post('/:num/apply',function(req, res){
-  console.log(req.user);
+router.post('/form', (req, res) => {
+  Exp.findById(req.body.exp, (err, exp) => {
+    if(err || !exp) return res.json({msg:"錯誤的實驗代碼"})
+    else{
+      return res.render('exps/form', { title: '測驗報名', alert: 0, current_user:req.user, exp:exp._id});
+    }
+  })
+});
+router.post('/apply/:num',function(req, res){
+  Subjects.create(req.body, (err, subject) => {
+    if(err || !subject) return res.json({msg: 'undefined'});
+    else{
+      Exp.findOne({'_id': req.params.num}, function(err, exp){
+        if(err || !exp) return res.json({msg: 'Unable to fetch an exp' });
+        if(exp.closed) return res.json({msg: 'Experiment expires!'})
+        else{
+          Subject_queue.create({'subject': subject, 'exp': exp, 'subject_id': subject._id, 'exp_id': exp._id},function(err, queue){
+            return res.json(queue);
+          });
+        }
+      });
+    }
+  })
+});
+router.get('/perform/:num', function(req, res){
   if(!req.user) return res.json({msg: 'undefined'});
-  else{
-    Exp.findOne({'_id': req.params.num}, function(err, exp){
-      if(err || !exp) return res.json({msg: 'Unable to fetch an exp' });
-      if(Date.now() - exp.started_at > 1800000) return res.json({msg: 'Experiment expires!'})
-      else{
-        Subject_queue.create({'subject': req.user, 'exp': exp},function(err, queue){
-          return res.json(queue);
-        });
-      }
-    });
-  }
-});
-router.get('/:num/perform', function(req, res){
   Exp.findOne({'_id': req.params.num}, function(err, exp){
     if(err || !exp) return res.json({msg: 'Unable to fetch an exp'})
-    Subject_queue.findOne({'subject': req.user,'exp': queue},function(){
-      if(err || !queue) res.json({msg: 'Fail to fetch queue'});
-      return res.render('exp/perform', {exp: exp._id, subject: subject._id})
-    })
+    else if(exp.started = null) return res.json({msg: 'Not started yet.'})
+    else{
+      Subject_queue.findOne({'subject': req.user,'exp': queue},function(){
+        if(err || !queue) return res.json({msg: 'Fail to fetch queue'});
+        return res.render('exp/perform', {exp: exp._id, subject: subject._id})
+      })
+    }
   })
 });
 router.get('/local', function(req, res){
   return res.render('exps/local', {title: '實驗確認', current_user:req.user});
 })
-router.post('/local', function(req, res){
-  return res.redirect(307,'/subjects/apply/'+req.body.code)
-})
+
 module.exports = router;

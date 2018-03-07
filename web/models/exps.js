@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+var mongoose = require('mongoose').set('debug', true);
 var Schema = mongoose.Schema;
 var shortid = require('shortid')
 
@@ -8,8 +8,9 @@ var Exp = new Schema({
       'default': shortid.generate
     },
     performer: String,
+    performer_id: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     closed: {type: Boolean, default: false},
-    started_at: { type: Date, default: null},
+    started: { type: Date, default: null},
     question: {type: mongoose.Schema.Types.ObjectId, ref: 'Question'}
   },
   {

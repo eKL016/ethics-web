@@ -33,17 +33,18 @@
                 再次感謝您的參加與協助！<br>
               </p>
             </div>
-            <form action="/exps/apply" method="post">
+            <form action="/exps/form" method="post">
               <div class="form-group w-75 mx-auto">
+
                 <br><br>
                 <label for="exps">選擇場次</label>
-                <select class="form-control" id="exps" name="exps">
+                <select class="form-control" id="exp" name="exp">
                   <% for(i in exps) {%>
                     <option value="<%= exps[i]._id %>"> <%= exps[i]._id %></option>
                   <% } %>
                 </select>
                 </br>
-                <button type="submit" class="btn btn-primary btn-block">設定新實驗</button>
+                <button type="submit" class="btn btn-primary btn-block">報名</button>
             </form>
           </div>
         </div>

@@ -17,6 +17,23 @@
             <div class="card-header bg-dark text-white">
               管理者選單
             </div>
+
+            <ul class="list-group list-group-flush">
+
+                <li class="list-group-item"><h5 class="mx-auto card-title">開放配對之實驗</h5></li>
+
+              <%for (exp in progress) {%>
+                <li class="list-group-item">
+                  <div class="row">
+                  <div class="col-lg-10"><%=progress[exp]._id+ "@" + progress[exp].started%></div>
+                  <div class="col-lg-2">
+                    <button type="button" class="ml-auto d-inline btn btn-danger btn-sm" onclick="location.href='/exps/close/<%= progress[exp]._id%>'">關閉並配對</button>
+                  </div>
+                  </div>
+                </li>
+              <%}%>
+            </ul>
+
             <form action="admin/init_exp" method="post">
               <br><br>
               <button type="button" class="w-75 mx-auto btn btn-success btn-block" onclick="location.href='/admin/init_exp/'">安排新測驗</button>

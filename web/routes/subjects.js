@@ -14,7 +14,7 @@ router.get('/apply', function(req, res){
   return res.render('subjects/apply');
 });
 router.post('/apply/:num', function(req, res){
-  User.register(new User(req.body), "ethics-web", function(err, subject) {
+  User.register(new User({username:req.body.username}), "ethics-web", function(err, subject) {
       if (err) {
         console.log(new Date() + ' ' + err);
         return res.redirect('/');

@@ -10,7 +10,6 @@ var mongoose = require('mongoose')
 var partials = require('express-partials');
 var session = require('cookie-session');
 var index = require('./routes/index');
-var users = require('./routes/users');
 var admins = require('./routes/admins');
 var subjects = require('./routes/subjects');
 var exps = require('./routes/exps');
@@ -40,7 +39,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/', index);
-app.use('/users', users);
 app.use('/admin', admins);
 app.use('/subjects', subjects);
 app.use('/exps', exps);

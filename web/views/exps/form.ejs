@@ -15,21 +15,11 @@
         <div class="col-lg-8">
           <div class="card">
             <div class="card-header bg-dark text-white">
-              測驗開始
+              測驗報名
             </div>
-            <form action="/exps/start" method="post">
+            <form action="/exps/apply/<%= exp%>" method="post">
               <div class="form-group w-75 mx-auto">
-                <br><br>
-                <label for="num">尚未開始之測驗</label>
-                <select class="form-control" id="num" name="num">
-                  <% for(i in exps) {%>
-                    <option value="<%= exps[i]._id %>"> <%= exps[i]._id + " Set by " +  exps[i].performer %></option>
-                  <% } %>
-                </select>
-                <br>
-
-                <button type="submit" class="btn btn-primary btn-block">開始</button>
-                <br>
+                <button type="submit" class="btn btn-primary btn-block">報名</button>
               </div>
             </form>
           </div>

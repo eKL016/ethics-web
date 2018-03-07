@@ -14,12 +14,12 @@
         <div class="col-lg-2"></div>
         <div class="col-lg-8">
           <div class="card">
-            <form action="/exps/local" method="post">
+            <form action="/exps/perform" method="post">
               <br><br>
               <div class="form-group row">
                 <div class="col-lg-1"></div>
                 <div class="col-lg-10">
-                  <label for="code">請輸入主持人提供的實驗唯一代碼</label>
+                  <label for="code">請輸入主持人提供的實驗唯一代碼（僅供現場場次使用）</label>
                 </div>
                 <div class="col-lg-1"></div>
               </div>
@@ -39,11 +39,46 @@
               </div>
               <br><br>
             </form>
+            <div class="row">
+              <div class="col-lg-1"></div>
+              <div class="col-lg-10"><h5>或</h5></div>
+              <div class="col-lg-1"></div>
+            </div>
+            <form action="/exps/perform" method="post">
+              <br><br>
+              <div class="form-group row">
+                <div class="col-lg-1"></div>
+                <div class="col-lg-10">
+                  <label for="code">之前報名實驗時所使用的Email</label>
+                </div>
+                <div class="col-lg-1"></div>
+              </div>
+              <div class="form-group row">
+                <div class="col-lg-1"></div>
+                <div class="col-lg-10">
+                  <input class="form-control" type="text" id="email" placeholder="@" name="email">
+                </div>
+                <div class="col-lg-1"></div>
+              </div>
+              <div class="from-group row">
+                <div class="col-lg-1"></div>
+                <div class="col-lg-10">
+                  <button type="submit" class="mx-auto btn btn-success btn-block">開始實驗</button>
+                </div>
+                <div class="col-lg-1"></div>
+              </div>
+              <br><br>
+            </form>
+          </div>
 
           </div>
         </div>
         <div class="col-lg-2"></div>
       </div>
+
+
+
+
     </div>
     <% include ../partials/bootstrap-scripts.ejs %>
   </body>

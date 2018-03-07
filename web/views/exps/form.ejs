@@ -17,7 +17,57 @@
             <div class="card-header bg-dark text-white">
               測驗報名
             </div>
+
             <form action="/exps/apply/<%= exp%>" method="post">
+              <br>
+              <div class="form-group w-75 mx-auto">
+                <label for="email">Email地址</label>
+                <input type="email" class="form-control" name="email" id="email" aria-describedby="emailHelp" placeholder="@" required>
+                <small id="emailHelp" class="form-text text-muted">僅供現場作答時核對身份與寄發通知信用</small>
+              </div>
+              <div class="form-group w-75 mx-auto">
+                <label for="gender">生理性別</label>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input ml-auto" type="radio" name="gender" id="male" value="true" required>
+                  <label class="form-check-label" for="男性">男性</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input ml-auto" type="radio" name="gender" id="female" value="false" required>
+                  <label class="form-check-label" for="女性">女性</label>
+                </div>
+              </div>
+              <div class="form-group w-75 mx-auto">
+                <label for="school">就讀學校</label>
+                <input type="text" class="form-control" name="school" id="school" placeholder="請填學校全稱，例如︰國立師範大學" required>
+              </div>
+              <div class="form-group w-75 mx-auto">
+                <label for="department">系所分類</label>
+                  <select class="form-control" name="department" id="department" required>
+                    <option>文學</option>
+                    <option>理學</option>
+                    <option>社科</option>
+                    <option>工學</option>
+                    <option>管理</option>
+                    <option>教育</option>
+                    <option>設計</option>
+                    <option>醫藥</option>
+                    <option>藝術</option>
+                    <option>生科</option>
+                  </select>
+              </div>
+              <div class="form-group w-75 mx-auto">
+                <label for="grades">系所分類</label>
+                  <select class="form-control" name="grades" id="grades" required>
+                    <option>大一</option>
+                    <option>大二</option>
+                    <option>大三</option>
+                    <option>大四</option>
+                    <option>大五</option>
+                    <option>大六</option>
+                    <option>大七</option>
+                    <option>碩班或以上</option>
+                  </select>
+              </div>
               <div class="form-group w-75 mx-auto">
                 <button type="submit" class="btn btn-primary btn-block">報名</button>
               </div>

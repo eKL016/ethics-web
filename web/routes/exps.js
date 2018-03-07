@@ -128,23 +128,28 @@ router.post('/form', (req, res) => {
   })
 });
 router.post('/apply/:num',function(req, res){
-  Subjects.create(req.body, (err, subject) => {
-    if(err || !subject) return res.json({msg: 'undefined'});
-    else{
-      Exp.findOne({'_id': req.params.num}, function(err, exp){
-        if(err || !exp) return res.json({msg: 'Unable to fetch an exp' });
-        if(exp.closed) return res.json({msg: 'Experiment expires!'})
+  Subjects.find({email: req.body.email}, (err, exist) => {
+
+    if(exist.length == 0){
+      Subjects.create(req.body, (err, subject) => {
+        if(err || !subject) return res.render('index', {title: '學術倫理', alert: 'Undefined error', msg:'', current_user:req.user});
         else{
-          Subject_queue.create({'subject': subject, 'exp': exp, 'subject_id': subject._id, 'exp_id': exp._id},function(err, queue){
-            return res.json(queue);
+          Exp.findOne({'_id': req.params.num}, function(err, exp){
+            if(err || !exp) return res.render('index', {title: '學術倫理', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
+            if(exp.closed) return res.render('index', {title: '學術倫理', alert: 'Experiment expires!', msg:'', current_user:req.user})
+            else{
+              Subject_queue.create({'subject': subject, 'exp': exp, 'subject_id': subject._id, 'exp_id': exp._id},function(err, queue){
+                return res.render('index',{title: '學術倫理',msg: '您已成功報名該場次實驗，場次兩天前您會收到我們的通知信！', alert:'',current_user:req.user});
+              });
+            }
           });
         }
-      });
+      })
     }
+    else return res.render('index', {title: '學術倫理', alert: '你已經報名過本實驗的任一場次，請勿重複報名！', msg:'', current_user:req.user});
   })
 });
 router.get('/perform/:num', function(req, res){
-  if(!req.user) return res.json({msg: 'undefined'});
   Exp.findOne({'_id': req.params.num}, function(err, exp){
     if(err || !exp) return res.json({msg: 'Unable to fetch an exp'})
     else if(exp.started = null) return res.json({msg: 'Not started yet.'})
@@ -156,8 +161,8 @@ router.get('/perform/:num', function(req, res){
     }
   })
 });
-router.get('/local', function(req, res){
-  return res.render('exps/local', {title: '實驗確認', current_user:req.user});
+router.get('/landing', function(req, res){
+  return res.render('exps/landing', {title: '實驗確認', current_user:req.user});
 })
 
 module.exports = router;

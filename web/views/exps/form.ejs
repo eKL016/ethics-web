@@ -15,10 +15,10 @@
         <div class="col-lg-8">
           <div class="card">
             <div class="card-header bg-dark text-white">
-              測驗報名
+              測驗資料填寫
             </div>
 
-            <form action="/exps/apply/<%= exp%>" method="post">
+            <form action="/exps/<%= target%>" method="post">
               <br>
               <div class="form-group w-75 mx-auto">
                 <label for="email">Email地址</label>
@@ -69,7 +69,7 @@
                   </select>
               </div>
               <div class="form-group w-75 mx-auto">
-                <button type="submit" class="btn btn-primary btn-block">報名</button>
+                <button type="submit" class="btn btn-primary btn-block">送出</button>
               </div>
             </form>
           </div>

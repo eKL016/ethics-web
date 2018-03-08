@@ -123,7 +123,7 @@ router.post('/form', (req, res) => {
   Exp.findById(req.body.exp, (err, exp) => {
     if(err || !exp) return res.json({msg:"錯誤的實驗代碼"})
     else{
-      return res.render('exps/form', { title: '測驗報名', alert: 0, current_user:req.user, exp:exp._id});
+      return res.render('exps/form', { title: '測驗報名', alert: 0, current_user:req.user, target:"apply/"+String(exp._id)});
     }
   })
 });
@@ -149,18 +149,92 @@ router.post('/apply/:num',function(req, res){
     else return res.render('index', {title: '學術倫理', alert: '你已經報名過本實驗的任一場次，請勿重複報名！', msg:'', current_user:req.user});
   })
 });
-router.get('/perform/:num', function(req, res){
-  Exp.findOne({'_id': req.params.num}, function(err, exp){
-    if(err || !exp) return res.json({msg: 'Unable to fetch an exp'})
-    else if(exp.started = null) return res.json({msg: 'Not started yet.'})
+
+router.get('/perform/', function(req, res){
+  var exp = req.query.exp;
+  var subject = req.query.subject;
+  Exp.findById(exp, (err, exp) => {
+    if(err || !exp) return res.json(['fail']);
+    if(exp.closed){
+      return res.json(['pass']);
+    }
     else{
-      Subject_queue.findOne({'subject': req.user,'exp': queue},function(){
-        if(err || !queue) return res.json({msg: 'Fail to fetch queue'});
-        return res.render('exp/perform', {exp: exp._id, subject: subject._id})
-      })
+      return res.json(['wait']);
     }
   })
+
 });
+router.get('/perform/:exp_id/:subject_id', (req, res) => {
+  exp_id = req.params.exp_id;
+  subject = req.params.subject_id
+  Exp.findById(exp, (err, exp) => {
+    if(err || !exp) return res.json(['fail']);
+    if(exp.closed || exp.started === null){
+      return res.json([exp,subject]);
+    }
+    else{
+      return res.json([exp,subject]);
+    }
+  })
+})
+router.get('/ajax', (req, res) => {
+  return res.render('exps/perform', {title: '測驗報名', alert: 0, current_user:req.user});
+})
+
+
+
+
+
+
+router.post('/perform/', function(req, res){
+  if(req.body.email) {
+    Subjects.findOne({email: req.body.email}, (err, subjects) => {
+      if(subjects.length == 0){
+        return res.render('exps/landing');
+      }
+      else{
+        Subject_queue.findOne({'subject': subjects[0]}, (err, queue) => {
+          if(err || !queue) return res.json({msg: 'Fail to fetch queue'});
+          return res.render('exp/perform', {title: '學術倫理', current_user:req.user, exp: exp._id, subject: subject._id});
+        })
+      }
+    })
+  }
+  else{
+    Exp.findOne({'_id': req.body.exp}, function(err, exp){
+      if(err || !exp) return res.render('index', {title: '學術倫理', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
+      else if(exp.closed) return res.render('index', {title: '學術倫理', alert: 'Experiment expires!', msg:'', current_user:req.user});
+      else if(exp.started === null) return res.render('index', {title: '學術倫理', alert: '實驗尚未開始！', msg:'', current_user:req.user});
+      else return res.render('exps/form', { title: '測驗報名', alert: 0, current_user:req.user, target: 'local/'+String(exp._id)});
+    })
+  }
+
+});
+router.post('/local/:num', (req, res) => {
+  Subjects.find({email: req.body.email}, (err, exist) => {
+
+    if(exist.length == 0){
+      Subjects.create(req.body, (err, subject) => {
+        if(err || !subject) return res.render('index', {title: '學術倫理', alert: 'Undefined error', msg:'', current_user:req.user});
+        else{
+          Exp.findOne({'_id': req.params.num}, function(err, exp){
+            if(err || !exp) return res.render('index', {title: '學術倫理', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
+            if(exp.closed) return res.render('index', {title: '學術倫理', alert: 'Experiment expires!', msg:'', current_user:req.user})
+            else{
+              Subject_queue.create({'subject': subject, 'exp': exp, 'subject_id': subject._id, 'exp_id': exp._id}, function(err, queue){
+                return res.render('exps/perform', {title: '學術倫理', current_user:req.user, exp: exp._id, subject: subject._id});
+              });
+            }
+          });
+        }
+      })
+    }
+    else return res.render('index', {title: '學術倫理', alert: '你已經參加過本實驗的任一場次，請勿重複參加！', msg:'', current_user:req.user});
+  })
+})
+
+
+
 router.get('/landing', function(req, res){
   return res.render('exps/landing', {title: '實驗確認', current_user:req.user});
 })

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include ../partials/base.ejs %>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <% include ../partials/navbar.ejs %>
+    <div class="container">
+      <br><br>
+
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+          <div class="card" style="height: 10rem">
+            <div class="loader">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <p class="align-self-center" style="position: fixed;margin-top: 7rem">請等待測驗主持人宣佈測驗開始...</p>
+          </div>
+
+          </div>
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+
+
+
+
+    </div>
+    <% include ../partials/bootstrap-scripts.ejs %>
+    <script>
+      var OL_Action_Root = "http://localhost:3000";
+      var xmlHttp = null;
+      function Req_ajax() {
+        jQuery.ajax(
+          { data: {'exp': exp, 'subject': subject},
+          url: OL_Action_Root+"/exps/perform",
+          dataType: 'json',
+          cache: false,
+          timeout: 5000,
+          type:'GET',
+          success: (data) => {
+            var res = data;
+            if(res[0] == 'wait') {
+              console.log('wait');
+            }
+            else if(res[0] == 'pass'){
+              window.location.replace(OL_Action_Root+"/exps/perform/<%= exp%>/<%= subject%>");
+            }
+          },
+          error: (jqXHR, textStatus, errorThrown) => {
+            console.log('bad request');
+          }
+        });
+      }
+      setInterval(Req_ajax, 5000);
+      exp="<%= exp%>";
+      subject="<%= subject%>";
+      Req_ajax();
+    </script>
+  </body>
+</html>

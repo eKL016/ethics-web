@@ -166,20 +166,21 @@ router.get('/perform/', function(req, res){
 });
 router.get('/perform/:exp_id/:subject_id', (req, res) => {
   exp_id = req.params.exp_id;
-  subject = req.params.subject_id
-  Exp.findById(exp, (err, exp) => {
+  subject_id = req.params.subject_id
+  Exp.findById(exp_id, (err, exp) => {
     if(err || !exp) return res.json(['fail']);
-    if(exp.closed || exp.started === null){
-      return res.json([exp,subject]);
+    if(exp.started === null){
+      return res.redirect('/');
     }
     else{
-      return res.json([exp,subject]);
+      console.log(exp.question);
+      return res.render('exps/answersheet', {title: '測驗報名', alert: 0, current_user:req.user,
+        exp: exp_id, subject: subject_id, question: exp.question
+      });
     }
   })
-})
-router.get('/ajax', (req, res) => {
-  return res.render('exps/perform', {title: '測驗報名', alert: 0, current_user:req.user});
-})
+});
+
 
 
 

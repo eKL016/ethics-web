@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include ../partials/base.ejs %>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <% include ../partials/navbar.ejs %>
+    <div class="container">
+      <br><br>
+
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+          <div class="card" style="height: 10rem">
+          <form target="/exps/perform/<%= exp %>/<%= subject %>">
+            <% var q_array = question.q_array %>
+            <% for (i in q_array) {%>
+              <div class="form-group">
+                <h5><%= q_array[i].title %></h5>
+                <p><%= q_array[i].text %></p>
+                <%if(q_array[i].score) {%>
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th scope="col">你選擇</th>
+                          <th scope="col">合作</th>
+                          <th scope="col">不合作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="row">他人選擇合作</th>
+                          <td><%= q_array[i].score[0][0] %></td>
+                          <td><%= q_array[i].score[0][1] %></td>
+                        </tr>
+                        <tr>
+                          <th scope="row">他人選擇不合作</th>
+                          <td><%= q_array[i].score[1][0] %></td>
+                          <td><%= q_array[i].score[1][1] %></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label for="choose" class="col-sm-2 col-form-label">你選擇</label>
+                  <div class="col-sm-10">
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" id="choose-yes<%= i%>" name="choose<%= i%>" value="false">
+                      <label class="form-check-label" for="choose-yes<%= i%>">合作</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" id="choose-no<%= i%>" name="choose<%= i%>" value="false">
+                      <label class="form-check-label" for="choose-no<%= i%>">不合作</label>
+                    </div>
+                  </div>
+                </div>
+                <%} else {%>
+                </div>
+                <div class="form-group row">
+                  <label for="input<%= i%>" class="col-sm-2 col-form-label">你選擇</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="input<%= i%>" name="input<%= i%>" placeholder="輸入金額">
+                  </div>
+                </div>
+                <%}%>
+            <%}%>
+            <button type="submit" class="btn btn-success btn-lg btn-block w-75">作答完畢</button>
+          </form>
+          </div>
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+
+
+
+
+    </div>
+
+  </body>
+</html>

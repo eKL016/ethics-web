@@ -78,3 +78,4 @@ Mongo.connect('mongodb://localhost/web-liu', (err, db) => {
      };
   });
 });
+return 0;

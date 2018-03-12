@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 var validator = require("email-validator");
 var passport = require('passport');
-const Subjects = require('../models/subjects')
+const Subjects = require('../models/subjects');
+const Answers = require('../models/answers')
 const User = require('../models/users');
 const Exp = require('../models/exps');
 const Exp_pair = require('../models/exp_pairs');
@@ -89,31 +90,31 @@ router.get('/close/:id', function(req, res){
     });
   }
 });
-router.get('/start', function(req, res){
-  if(!req.user) return res.redirect('/');
-  else{
-    Exp.find({started: null}, function(err, exp){
-      if(err || !exp ) return res.json({msg:'Unable to start the exp'});
-        return res.render('exps/start',{ title: '測驗開始', alert: 0, current_user:req.user, exps: exp})
-      });
-  }
-});
-router.post('/start', function(req,res){
-  if(!req.user) return res.redirect('/');
-  else{
-    Exp.findById(req.body.num, function(err, exp){
-      if(err || !exp ) return res.json({msg:'Unable to start the exp'});
-      exp.started = Date.now();
-      exp.save(function(err, updated_exp){
-        if(err || !updated_exp) return res.json({msg:'Unable to start the exp'});
-        else{
-          res.redirect('/exps')
-        }
-      });
-    })
-  }
-
-});
+router.route('/start')
+  .get((req, res) => {
+    if(!req.user) return res.redirect('/');
+    else{
+      Exp.find({started: null}, function(err, exp){
+        if(err || !exp ) return res.json({msg:'Unable to start the exp'});
+          return res.render('exps/start',{ title: '測驗開始', alert: 0, current_user:req.user, exps: exp})
+        });
+    }
+  })
+  .post((req,res) => {
+    if(!req.user) return res.redirect('/');
+    else{
+      Exp.findById(req.body.num, function(err, exp){
+        if(err || !exp ) return res.json({msg:'Unable to start the exp'});
+        exp.started = Date.now();
+        exp.save(function(err, updated_exp){
+          if(err || !updated_exp) return res.json({msg:'Unable to start the exp'});
+          else{
+            res.redirect('/admin')
+          }
+        });
+      })
+    }
+  });
 router.get('/apply', function(req, res){
   Exp.find({closed: false}, function(err, exps){
     return res.render('exps/apply', { title: '測驗報名', alert: 0, current_user:req.user, exps:exps});
@@ -164,22 +165,46 @@ router.get('/perform/', function(req, res){
   })
 
 });
-router.get('/perform/:exp_id/:subject_id', (req, res) => {
-  exp_id = req.params.exp_id;
-  subject_id = req.params.subject_id
-  Exp.findById(exp_id, (err, exp) => {
-    if(err || !exp) return res.json(['fail']);
-    if(exp.started === null){
-      return res.redirect('/');
-    }
-    else{
-      console.log(exp.question);
-      return res.render('exps/answersheet', {title: '測驗報名', alert: 0, current_user:req.user,
-        exp: exp_id, subject: subject_id, question: exp.question
-      });
-    }
+router.route('/perform/:exp_id/:subject_id')
+  .get((req, res) => {
+    exp_id = req.params.exp_id;
+    subject_id = req.params.subject_id;
+    Exp.findById(exp_id).populate('question').exec((err, exp) => {
+      if(err || !exp) return res.json(['fail']);
+      if(exp.started === null){
+        return res.redirect('/');
+      }
+      else{
+        console.log(exp.question);
+        return res.render('exps/answersheet', {title: '測驗報名', alert: 0, current_user:req.user,
+          exp: exp_id, subject: subject_id, question: exp.question
+        });
+      }
+    });
   })
-});
+  .post((req, res) => {
+    exp_id = req.params.exp_id;
+    subject_id = req.params.subject_id;
+    var answers = []
+    for(var i=1; i<=4 ;i++){
+      eval('answers.push(req.body.choose'+String(i)+')');
+    }
+    Subjects.findById(subject_id, (err, subject) => {
+      if(err || !subject) return res.render('index', {title: '學術倫理', alert: '發生未知的錯誤！', msg:'', current_user:req.user});
+      if(subject.answer) return res.render('index', {title: '學術倫理', alert: '你已經於該場次作答過了！', msg:'', current_user:req.user});
+      else{
+        var new_answer = new Answers({
+          ans_array: answers
+        });
+        Answers.create(new_answer);
+        subject.answers = new_answer;
+        subject.save((err, ans) => {
+          if(err || !ans) return res.render('index', {title: '學術倫理', alert: '發生未知的錯誤！', msg:'', current_user:req.user});
+          else return res.render('index', {title: '學術倫理', alert: '', msg:'完成作答！請敬待實驗主持人宣佈事項。', current_user:req.user});
+        })
+      }
+    })
+  });
 
 
 

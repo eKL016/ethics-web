@@ -65,11 +65,14 @@
                   </div>
                   <hr>
                   <%} else {%>
+                  <%console.log(flag)%>
+                  <% if (flag) { var char="你提議" %>
+                  <%} else { var char="你反應" }%>
                   </div>
                   <div class="w-75 mx-auto form-group row">
-                    <label for="choose<%= i+1%>" class="col-sm-2 col-form-label">你選擇</label>
+                    <label for="choose<%= i+1%>" class="col-sm-2 col-form-label"><%= char%></label>
                     <div class="col-sm-10">
-                      <input type="text" class="form-control" id="choose<%= i+1%>" name="choose<%= i+1%>" placeholder="輸入金額" required>
+                      <input type="text" class="form-control" id="choose<%= i+1%>" name="choose<%= i+1%>" placeholder="多少金額？" required>
                     </div>
                   </div>
                   <hr>

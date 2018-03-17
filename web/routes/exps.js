@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var validator = require("email-validator");
 var passport = require('passport');
+var ObjectID = require('mongodb').ObjectID;
 const Subjects = require('../models/subjects');
 const Answers = require('../models/answers')
 const User = require('../models/users');
@@ -11,18 +12,21 @@ const Subject_queue = require('../models/subject_queue')
 passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
-function assign_pair(exp_id, subjects, pair_model){
-  console.log(seed)
+function assign_pair(exp, subjects, pair_model){
+  console.log("subjects:", subjects)
   response = []
-  for(i = 0; i < seed.length-1; i=i+2){
-    pair_model.create({'subject_A': subjects[seed[i]], 'subject_B':subjects[seed[i+1]], 'Exp':exp_id}, function(err, pair){
-      console.log(pair);
+  for(var i = 0; i < seed.length-1; i=i+2){
+    pair_model.create({'subject_A': ObjectID(subjects[seed[i]].subject_id), 'subject_B':ObjectID(subjects[seed[i+1]].subject_id), 'Exp':exp}, function(err, pair){
       if(err) response.push(err)
+      else{
+        exp.closed = true;
+        exp.save();
+      }
     })
   }
   return response
 }
-function shuffle(exp_id, subjects, Exp_pair, cb) {
+function shuffle(exp, subjects, Exp_pair, cb) {
     var j, x, i;
     for (i = seed.length - 1; i > 0; i--) {
         j = Math.floor(Math.random() * (i + 1));
@@ -31,7 +35,7 @@ function shuffle(exp_id, subjects, Exp_pair, cb) {
         seed[j] = x;
     }
     setTimeout(() => {
-      return cb(exp_id, subjects, Exp_pair);
+      return cb(exp, subjects, Exp_pair);
     },3000);
 
 }
@@ -71,16 +75,12 @@ router.get('/close/:id', function(req, res){
         return res.json({msg:"Closed"})
       }
       else{
-        exp.closed = true;
         if(err) return res.json({msg:"Attemped to close an exp fail"});
         else{
-          console.log(exp)
           Subject_queue.find({exp_id: String(exp._id)},'subject_id', function(err, subjects){
-            console.log(subjects);
             seed = Object.keys(subjects);
-            response = shuffle(exp._id, subjects, Exp_pair, assign_pair);
+            response = shuffle(exp, subjects, Exp_pair, assign_pair);
             if(!response) {
-              exp.save();
               return res.json({msg:"Paired"});
             }
             console.log(response)
@@ -175,9 +175,11 @@ router.route('/perform/:exp_id/:subject_id')
         return res.redirect('/');
       }
       else{
-        console.log(exp.question);
-        return res.render('exps/answersheet', {title: '測驗報名', alert: 0, current_user:req.user,
-          exp: exp_id, subject: subject_id, question: exp.question
+        Exp_pair.findOne({$or:[{'subject_A':ObjectID(subject_id)},{'subject_B':ObjectID(subject_id)}]}).exec((err,pair) => {
+          console.log('Pair:',pair)
+          return res.render('exps/answersheet', {title: '測驗報名', alert: 0, current_user:req.user,
+            exp: exp_id, subject: subject_id, question: exp.question, flag:(pair.subject_A==subject_id)
+          });
         });
       }
     });

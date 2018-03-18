@@ -11,6 +11,7 @@ var Exp = new Schema({
     performer_id: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     closed: {type: Boolean, default: false},
     started: { type: Date, default: null},
+    scored: { type: Boolean, default: false},
     question: {type: mongoose.Schema.Types.ObjectId, ref: 'Question'}
   },
   {

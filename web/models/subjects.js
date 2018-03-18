@@ -13,6 +13,7 @@ const Subjects = new Schema({
     department: String,
     grades: String,
     gender: Boolean,
+    score: Number,
     answers: {type: mongoose.Schema.Types.ObjectId, ref: 'Answer'}
   }
 );

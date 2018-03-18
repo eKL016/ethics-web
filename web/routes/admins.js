@@ -12,8 +12,10 @@ passport.deserializeUser(User.deserializeUser());
 
 router.get('/', function(req, res, next) {
   if ( req.user ){
-    Exp.find({closed: false, started: {$ne: null} },(err, progress) => {
-      return res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user, progress: progress})
+    Exp.find({closed: false, started: {$ne: null} },(err, unpaired) => {
+      Exp.find({closed: true, scored: false}, (err1, unscored) => {
+        return res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user, unpaired: unpaired, unscored: unscored})
+      })
     })
   }
   else return res.redirect("/admin/login")

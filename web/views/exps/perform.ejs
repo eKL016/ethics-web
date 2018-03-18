@@ -37,7 +37,7 @@
       var xmlHttp = null;
       function Req_ajax() {
         jQuery.ajax(
-          { data: {'exp': exp, 'subject': subject},
+          { data: {'exp': exp, 'subject': subject, 'email': ''},
           url: OL_Action_Root+"/exps/perform",
           dataType: 'json',
           cache: false,

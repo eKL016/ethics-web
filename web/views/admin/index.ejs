@@ -20,14 +20,24 @@
 
             <ul class="list-group list-group-flush">
 
-                <li class="list-group-item"><h5 class="mx-auto card-title">開放配對之實驗</h5></li>
+                <li class="list-group-item"><h5 class="mx-auto card-title">進行中之實驗</h5></li>
 
-              <%for (exp in progress) {%>
+              <%for (exp in unpaired) {%>
                 <li class="list-group-item">
                   <div class="row">
-                  <div class="col-lg-10"><%=progress[exp]._id+ "@" + progress[exp].started%></div>
+                  <div class="col-lg-10"><%=unpaired[exp]._id+ "@" + unpaired[exp].started%></div>
                   <div class="col-lg-2">
-                    <button type="button" class="ml-auto d-inline btn btn-danger btn-sm" onclick="location.href='/exps/close/<%= progress[exp]._id%>'">關閉並配對</button>
+                    <button type="button" class="ml-auto d-inline btn btn-warning btn-sm" onclick="location.href='/exps/close/<%= unpaired[exp]._id%>'">配對</button>
+                  </div>
+                  </div>
+                </li>
+              <%}%>
+              <%for (exp in unscored) {%>
+                <li class="list-group-item">
+                  <div class="row">
+                  <div class="col-lg-10"><%=unscored[exp]._id+ "@" + unscored[exp].started%></div>
+                  <div class="col-lg-2">
+                    <button type="button" class="ml-auto d-inline btn btn-danger btn-sm" onclick="location.href='/exps/end/<%= unscored[exp]._id%>'">結束並計分</button>
                   </div>
                   </div>
                 </li>

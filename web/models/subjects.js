@@ -5,10 +5,6 @@ const Subjects = new Schema({
       type: String,
       index: true
     },
-    paired: {
-      type:Boolean,
-      'default': false
-    },
     school: String,
     department: String,
     grades: String,

@@ -21,10 +21,7 @@ function assign_pair(res, exp, subjects, pair_model){
       else{
         exp.closed = true;
         exp.save((err) => {
-          Subject_queue.remove({ exp_id: exp._id }, (err) => {
-          if (err) console.log(err);
           return res.redirect("/admin");
-          });
         });
       }
     })
@@ -43,33 +40,58 @@ function shuffle(res, exp, subjects, Exp_pair, cb) {
     return cb(res, exp, subjects, Exp_pair);
   },3000);
 }
-function scoring(res, pairs, q_array, exp){
+function check_answers(res, pairs, q_array, exp, cb){
+
+  console.log(pairs.length)
   for(i in pairs){
     Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score').populate('answers').exec((err, subject_A)=>{
       Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score').populate('answers').exec((err, subject_B)=>{
-        let scoreA = 0;
-        let scoreB = 0;
-        eoq = 3;
-        for(let j=0; j<eoq; j++){
-          scoreA += q_array[j].score[1^subject_B.answers.ans_array[j]][1^subject_A.answers.ans_array[j]];
-          scoreB += q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]];
+
+        if(!subject_A.answers || !subject_B.answers ) {
+          return res.redirect('/admin');
         }
-        if(subject_A.answers.ans_array[eoq]>=subject_B.answers.ans_array[eoq]){
-          scoreA += (100 - subject_A.answers.ans_array[eoq]);
-          scoreB += subject_A.answers.ans_array[eoq];
+        else if(i == pairs.length-1 ){
+          return cb(res, pairs, q_array, exp);
         }
-        subject_A.score = scoreA;
-        subject_B.score = scoreB;
-        subject_A.save((err) => {
-          subject_B.save((err) =>{
-              exp.save((err) => {
-                return res.redirect('/admin');
-              })
-          })
-        });
+
       })
     })
-  };
+  }
+}
+function scoring(res, pairs, q_array, exp){
+  Subject_queue.remove({ exp_id: exp._id }, (err) => {
+  if (err) console.log(err);
+    for(i in pairs){
+      Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score').populate('answers').exec((err, subject_A)=>{
+        Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score').populate('answers').exec((err, subject_B)=>{
+          let flag = false;
+          let scoreA = 0;
+          let scoreB = 0;
+          eoq = 3;
+
+          for(let j=0; j<eoq; j++){
+
+              scoreA += q_array[j].score[1^subject_B.answers.ans_array[j]][1^subject_A.answers.ans_array[j]];
+              scoreB += q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]];
+
+          }
+          if(subject_A.answers.ans_array[eoq]>=subject_B.answers.ans_array[eoq]){
+            scoreA += (100 - subject_A.answers.ans_array[eoq]);
+            scoreB += subject_A.answers.ans_array[eoq];
+          };
+          subject_A.score = scoreA;
+          subject_B.score = scoreB;
+          subject_A.save((err) => {
+            subject_B.save((err) =>{
+                exp.save((err) => {
+                  return res.redirect('/admin');
+                })
+            })
+          });
+        })
+      })
+    };
+  });
 }
 
 router.get('/', function(req, res){
@@ -117,7 +139,7 @@ router.get('/close/:id', function(req, res){
                     Math.floor(Math.random()*100)%2 == 0,
                     Math.floor(Math.random()*100)%2 == 0,
                     Math.floor(Math.random()*100)%2 == 0,
-                    Math.floor(Math.random()*100),
+                    Math.floor(Math.random()*15)+30,
                   ]
                 })
                 console.log(answer)
@@ -170,7 +192,7 @@ router.get('/end/:id', (req, res) => {
                 q_array = exp.question.q_array
                 if(err) return res.json({msg: err});
                 else {
-                  scoring(res, pairs, q_array, exp);
+                  check_answers(res, pairs, q_array, exp, scoring);
                 }
           })
         }
@@ -222,21 +244,21 @@ router.post('/apply/:num',function(req, res){
 
     if(exist.length == 0){
       Subjects.create(req.body, (err, subject) => {
-        if(err || !subject) return res.render('index', {title: '學術倫理', alert: 'Undefined error', msg:'', current_user:req.user});
+        if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: 'Undefined error', msg:'', current_user:req.user});
         else{
           Exp.findOne({'_id': req.params.num}, function(err, exp){
-            if(err || !exp) return res.render('index', {title: '學術倫理', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
-            if(exp.closed) return res.render('index', {title: '學術倫理', alert: 'Experiment expires!', msg:'', current_user:req.user})
+            if(err || !exp) return res.render('index', {title: '科技部教學策略', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
+            if(exp.closed) return res.render('index', {title: '科技部教學策略', alert: 'Experiment expires!', msg:'', current_user:req.user})
             else{
               Subject_queue.create({'subject': subject, 'exp': exp, 'subject_id': subject._id, 'exp_id': exp._id},function(err, queue){
-                return res.render('index',{title: '學術倫理',msg: '您已成功報名該場次實驗，場次兩天前您會收到我們的通知信！', alert:'',current_user:req.user});
+                return res.render('index',{title: '科技部教學策略',msg: '您已成功報名該場次實驗，場次兩天前您會收到我們的通知信！', alert:'',current_user:req.user});
               });
             }
           });
         }
       })
     }
-    else return res.render('index', {title: '學術倫理', alert: '你已經報名過本實驗的任一場次，請勿重複報名！', msg:'', current_user:req.user});
+    else return res.render('index', {title: '科技部教學策略', alert: '你已經報名過本實驗的任一場次，請勿重複報名！', msg:'', current_user:req.user});
   })
 });
 
@@ -245,7 +267,7 @@ router.route('/perform/')
     var email = req.query.email;
     if(email.length){
       Subjects.find({'email': email}, (err, subject) => {
-        if(err | !subject) return res.render('index', {title: '學術倫理', alert: '查無報名紀錄！', msg:'', current_user:req.user});
+        if(err | !subject) return res.render('index', {title: '科技部教學策略', alert: '查無報名紀錄！', msg:'', current_user:req.user});
         else Subject_queue.findOne({'subject': subject})
         .populate('subject')
         .populate('exp')
@@ -253,7 +275,7 @@ router.route('/perform/')
           console.log(queue);
           queue.valid = true;
           queue.save((err) => {
-            res.render('exps/perform', {title: '學術倫理', current_user:req.user, exp: queue.exp._id, subject: queue.subject._id});
+            res.render('exps/perform', {title: '科技部教學策略', current_user:req.user, exp: queue.exp._id, subject: queue.subject._id});
           })
         })
       })
@@ -274,10 +296,10 @@ router.route('/perform/')
   })
   .post((req, res)=>{
     Exp.findOne({'_id': req.body.exp}, function(err, exp){
-      if(err || !exp) return res.render('index', {title: '學術倫理', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
-      else if(exp.closed) return res.render('index', {title: '學術倫理', alert: 'Experiment expires!', msg:'', current_user:req.user});
-      else if(exp.started === null) return res.render('index', {title: '學術倫理', alert: '實驗尚未開始！', msg:'', current_user:req.user});
-      else return res.render('exps/form', { title: '測驗報名', alert: 0, current_user:req.user, target: 'local/'+String(exp._id)});
+      if(err || !exp) return res.render('index', {title: '科技部教學策略', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
+      else if(exp.closed) return res.render('index', {title: '科技部教學策略', alert: 'Experiment expires!', msg:'', current_user:req.user});
+      else if(exp.started === null) return res.render('index', {title: '科技部教學策略', alert: '實驗尚未開始！', msg:'', current_user:req.user});
+      else return res.render('exps/form', { title: '科技部教學策略', alert: 0, current_user:req.user, target: 'local/'+String(exp._id)});
     })
 
   });
@@ -293,7 +315,7 @@ router.route('/perform/:exp_id/:subject_id')
       else{
         Exp_pair.findOne({$or:[{'subject_A':ObjectID(subject_id)},{'subject_B':ObjectID(subject_id)}]}).exec((err,pair) => {
           console.log('Pair:',pair)
-          return res.render('exps/answersheet', {title: '測驗報名', alert: 0, current_user:req.user,
+          return res.render('exps/answersheet', {title: '作答', alert: 0, current_user:req.user,
             exp: exp_id, subject: subject_id, question: exp.question, flag:(pair.subject_A==subject_id)
           });
         });
@@ -311,8 +333,8 @@ router.route('/perform/:exp_id/:subject_id')
     }
     answers.push(Number(req.body.choose4))
     Subjects.findById(subject_id, (err, subject) => {
-      if(err || !subject) return res.render('index', {title: '學術倫理', alert: '發生未知的錯誤！', msg:'', current_user:req.user});
-      if(subject.answer) return res.render('index', {title: '學術倫理', alert: '你已經於該場次作答過了！', msg:'', current_user:req.user});
+      if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: '發生未知的錯誤！', msg:'', current_user:req.user});
+      if(subject.answer) return res.render('index', {title: '科技部教學策略', alert: '你已經於該場次作答過了！', msg:'', current_user:req.user});
       else{
         var new_answer = new Answers({
           ans_array: answers
@@ -320,8 +342,8 @@ router.route('/perform/:exp_id/:subject_id')
         Answers.create(new_answer);
         subject.answers = new_answer;
         subject.save((err, ans) => {
-          if(err || !ans) return res.render('index', {title: '學術倫理', alert: '發生未知的錯誤！', msg:'', current_user:req.user});
-          else return res.render('index', {title: '學術倫理', alert: '', msg:'完成作答！請敬待實驗主持人宣佈事項。', current_user:req.user});
+          if(err || !ans) return res.render('index', {title: '科技部教學策略', alert: '發生未知的錯誤！', msg:'', current_user:req.user});
+          else return res.render('index', {title: '科技部教學策略', alert: '', msg:'完成作答！請靜待實驗主持人宣佈事項。', current_user:req.user});
         })
       }
     })
@@ -339,21 +361,21 @@ router.post('/local/:num', (req, res) => {
 
     if(exist.length == 0){
       Subjects.create(req.body, (err, subject) => {
-        if(err || !subject) return res.render('index', {title: '學術倫理', alert: 'Undefined error', msg:'', current_user:req.user});
+        if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: 'Undefined error', msg:'', current_user:req.user});
         else{
           Exp.findOne({'_id': req.params.num}, function(err, exp){
-            if(err || !exp) return res.render('index', {title: '學術倫理', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
-            if(exp.closed) return res.render('index', {title: '學術倫理', alert: 'Experiment expires!', msg:'', current_user:req.user})
+            if(err || !exp) return res.render('index', {title: '科技部教學策略', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
+            if(exp.closed) return res.render('index', {title: '科技部教學策略', alert: 'Experiment expires!', msg:'', current_user:req.user})
             else{
               Subject_queue.create({'subject': subject, 'exp': exp, 'subject_id': subject._id, 'exp_id': exp._id, valid: true}, function(err, queue){
-                return res.render('exps/perform', {title: '學術倫理', current_user:req.user, exp: exp._id, subject: subject._id});
+                return res.render('exps/perform', {title: '科技部教學策略', current_user:req.user, exp: exp._id, subject: subject._id});
               });
             }
           });
         }
       })
     }
-    else return res.render('index', {title: '學術倫理', alert: '你已經參加過本實驗的任一場次，請勿重複參加！', msg:'', current_user:req.user});
+    else return res.render('index', {title: '科技部教學策略', alert: '你已經參加過本實驗的任一場次，請勿重複參加！', msg:'', current_user:req.user});
   })
 })
 

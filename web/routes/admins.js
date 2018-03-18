@@ -2,8 +2,10 @@ var express = require('express');
 var router = express.Router();
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var fs = require("fs");
 
-const json2csv = require('json2csv').parse;
+const tmp = require('tmp');
+const Json2csvParser = require('json2csv').Parser;
 const Question = require('../models/questions');
 const User = require('../models/users');
 const Exp = require('../models/exps');
@@ -12,6 +14,73 @@ const Subject = require('../models/subjects');
 passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
+
+function prepareFile(req, res, exp, cb){
+  answers = []
+  Exp_pair.find({'Exp': exp._id})
+  .populate('subject_A')
+  .populate('subject_B')
+  .exec((err, pairs) => {
+    for(i in pairs){
+      Subject.findOne({_id:pairs[i].subject_A._id})
+      .populate('answers')
+      .exec((err, subject)=>{
+        if(subject.email != 'placeholder') answers.push(
+          Object.keys(subject).map(function(key){ return subject[key] })
+          .concat(subject.answers.ans_array)
+          .concat(['A',exp._id])
+        );
+      })
+      Subject.findOne({_id:pairs[i].subject_B._id})
+      .populate('answers')
+      .exec((err, subject)=>{
+        if(subject.email != 'placeholder') answers.push(
+          Object.keys(subject).map(function(key){ return subject[key] })
+          .concat(subject.answers.ans_array)
+          .concat(['B',exp._id])
+        );
+      })
+    }
+  })
+  setTimeout(cb, 5000, req, res, answers, exp._id);
+}
+
+function saveFile(req, res, answers, exp_id){
+  const fields = [
+    {label:'Exp_id', value:'10'},
+    {label:'Email', value:'3.email'},
+    {label:'Gender', value:'3.gender'},
+    {label:'School', value:'3.school'},
+    {label:'College', value:'3.college'},
+    {label:'Department', value:'3.department'},
+    {label:'Grades', value:'3.grades'},
+    {label:'Q1', value:'5'},
+    {label:'Q2', value:'6'},
+    {label:'Q3', value:'7'},
+    {label:'Q4', value:'8'},
+    {label:'Character', value:'9'}
+  ]
+  datatype=req.query.datatype
+  const json2csvParser = new Json2csvParser({
+    fields,
+    excelStrings:datatype=='xls',
+    delimiter:(datatype=='xls'? '\t':',')
+  });
+  const csv = json2csvParser.parse(answers);
+  tmp.file(function _tempFileCreated(err, path, fd, cleanupCallback) {
+    if (err) throw err;
+    var f = fs.createWriteStream(path);
+    f.write(csv);
+    f.end(() => {
+      return res.download(path, exp_id+'.'+datatype, (err) => {
+        cleanupCallback();
+      });
+    });
+
+  });
+}
+
+
 
 router.get('/', function(req, res, next) {
   if ( req.user ){
@@ -26,9 +95,9 @@ router.get('/', function(req, res, next) {
 
 router.get('/exps', function(req,res, next){
   if ( req.user ){
-    Exp.find({closed: true}, function(err, exps){
+    Exp.find({scored: true}, function(err, exps){
       if(err || !exps) return console.log("Exp loading failed!")
-      else res.render('admin/exps', { title: '管理員選單', alert: 0, current_user:req.user, exps: exps})
+      else res.render('admin/exps', { title: '答案下載', alert: 0, current_user:req.user, exps: exps})
     })
   }
   else res.redirect("/admin/login")
@@ -99,30 +168,16 @@ router.route('/init_exp')
       });
     };
   });
-router.get('/download/:exp', (req, res) => {
-  Exp.findOne({'_id': req.params.exp, 'performer_id': req.user._id})
+router.get('/download/', (req, res) => {
+  Exp.findOne({'_id': req.query.exps, 'performer_id': req.user._id})
   .populate('question')
   .exec((err, exp) => {
     if(err | !exp) return res.json({msg: 'Not found'})
     else{
       title = exp.question.title;
       questions = exp.question.q_array;
-      answers = []
-      Exp_pair.find({'Exp': exp._id})
-      .populate('subject_A')
-      .populate('subject_B')
-      .exec((err, pairs) => {
-        for(i in pairs){
-          Subject.find({$or:[{_id:pairs[i].subject_A._id}, {_id:pairs[i].subject_B._id}]})
-          .populate(answers)
-          .exec((err, subject)=>{
-            if(subject[0].email != 'placeholder') answers.push(subject[0]);
-            if(subject[1].email != 'placeholder') answers.push(subject[1]);
-          })
-        }
-        const csv = json2csv(answers, opts);
-        console.log(csv);
-      })
+      prepareFile(req, res, exp, saveFile);
+
     }
   })
 })

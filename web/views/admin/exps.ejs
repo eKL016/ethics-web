@@ -17,7 +17,7 @@
             <div class="card-header bg-dark text-white">
               下載測驗結果
             </div>
-            <form action="admin/exps" method="post">
+            <form action="/admin/download" target="_self" method="get">
               <div class="form-group w-75 mx-auto">
                 <br><br>
                 <label for="exps">已完結之測驗</label>
@@ -28,13 +28,13 @@
                 </select>
                 <br>
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="datatype" id="datatype1" value="xlsx" checked>
+                  <input class="form-check-input" type="radio" name="datatype" id="datatype1" value="xls" disabled>
                   <label class="form-check-label" for="datatype1">
-                    .xlsx檔
+                    .xls檔
                   </label>
                 </div>
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="datatype" id="datatype2" value="csv">
+                  <input class="form-check-input" type="radio" name="datatype" id="datatype2" value="csv" checked>
                   <label class="form-check-label" for="datatype2">
                     .csv檔
                   </label>

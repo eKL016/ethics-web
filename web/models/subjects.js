@@ -6,6 +6,7 @@ const Subjects = new Schema({
       index: true
     },
     school: String,
+    college: String,
     department: String,
     grades: String,
     gender: Boolean,

@@ -17,7 +17,20 @@
             <div class="card-header bg-dark text-white">
               測驗資料填寫
             </div>
-
+            <div class="w-75 mx-auto">
+              <br>
+              <p>
+                ＊實驗進行間，不得使用手機、聊天交談等，以維護實驗完整性；若有不適者可中途離席<br>
+                ＊若有任何突發狀況或疑問皆可立即舉手詢問主持人<br>
+              </p>
+              <p>
+                以下資料請據實填寫，作為確認報名及聯絡之用<br>
+                實驗並不記名，為匿名制，僅以編號代之<br>
+                個資將於實驗結束後銷毀，不作他用<br>
+                若不願參與實驗者請不要填寫，填寫時即視同您願意參與本實驗<br>
+                再次感謝您的參加與協助！<br>
+              </p>
+            </div>
             <form action="/exps/<%= target%>" method="post">
               <br>
               <div class="form-group w-75 mx-auto">
@@ -38,11 +51,11 @@
               </div>
               <div class="form-group w-75 mx-auto">
                 <label for="school">就讀學校</label>
-                <input type="text" class="form-control" name="school" id="school" placeholder="請填學校全稱，例如︰國立師範大學" required>
+                <input type="text" class="form-control" name="school" id="school" placeholder="請填學校全稱，例如︰國立台灣大學" required>
               </div>
               <div class="form-group w-75 mx-auto">
                 <label for="department">系所分類</label>
-                  <select class="form-control" name="department" id="department" required>
+                  <select class="form-control" name="college" id="college" required>
                     <option>文學</option>
                     <option>理學</option>
                     <option>社科</option>
@@ -56,7 +69,11 @@
                   </select>
               </div>
               <div class="form-group w-75 mx-auto">
-                <label for="grades">系所分類</label>
+                <label for="school">就讀科系</label>
+                <input type="text" class="form-control" name="department" id="department" placeholder="請填學所全稱，例如︰資訊管理學系" required>
+              </div>
+              <div class="form-group w-75 mx-auto">
+                <label for="grades">年級</label>
                   <select class="form-control" name="grades" id="grades" required>
                     <option>大一</option>
                     <option>大二</option>

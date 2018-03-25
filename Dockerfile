@@ -15,7 +15,7 @@ RUN npm install --silent
 ENV MONGODB_URL=${MONGODB_URL}
 ENV MONGODB_USER=${MONGODB_USER}
 ENV MONGODB_PASS=${MONGODB_PASS}
-RUN node statics/import_questions.js
+RUN node statics/import_questions.js ${MONGODB_USER} ${MONGODB_PASS}
 
 
 CMD []

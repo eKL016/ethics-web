@@ -71,9 +71,9 @@ const questions = [
   }
 ];
 var Mongo = require('mongodb').MongoClient;
+console.log('mongodb://'+process.env.MONGODB_USER+':'+process.env.MONGODB_PASS+'@localhost/');
 Mongo.connect('mongodb://'+process.env.MONGODB_USER+':'+process.env.MONGODB_PASS+'@localhost/', (err, db) => {
   if(err) return console.log('連接資料庫失敗！')
-  console.log('mongodb://'+process.env.MONGODB_USER+':'+process.env.MONGODB_PASS+'@localhost/');
   dbo = db.db('web-liu');
   dbo.collection('questions').insertMany(questions, function(err,result) {
      if (err) {

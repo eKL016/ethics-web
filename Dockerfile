@@ -2,7 +2,7 @@ ARG MONGODB_URL
 ARG MONGODB_USER
 ARG MONGODB_PASS
 
-FROM nodejs
+FROM google/nodejs
 
 LABEL maintainer="ekl@ntu.im"
 
@@ -17,4 +17,3 @@ ENV MONGODB_PASS=${MONGODB_PASS}
 
 CMD []
 ENTRYPOINT ["node", "bin/www"]
-                              

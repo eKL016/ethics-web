@@ -64,12 +64,12 @@ function scoring(res, pairs, q_array, exp){
     for(i in pairs){
       Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score').populate('answers').exec((err, subject_A)=>{
         Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score').populate('answers').exec((err, subject_B)=>{
-          let flag = false;
-          let scoreA = 0;
-          let scoreB = 0;
+          var flag = false;
+          var scoreA = 0;
+          var scoreB = 0;
           eoq = 3;
 
-          for(let j=0; j<eoq; j++){
+          for(var j=0; j<eoq; j++){
 
               scoreA += q_array[j].score[1^subject_B.answers.ans_array[j]][1^subject_A.answers.ans_array[j]];
               scoreB += q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]];

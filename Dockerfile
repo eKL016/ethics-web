@@ -1,0 +1,14 @@
+ARG MONGODB_URL, MONGODB_USER, MONGODB_PASS
+FROM google/nodejs
+
+LABEL maintainer="ekl@ntu.im"
+
+
+RUN npm install --silent
+
+ENV MONGODB_URL=${MONGODB_URL}
+ENV MONGODB_USER=${MONGODB_USER}
+ENV MONGODB_PASS=${MONGODB_PASS}
+
+CMD []
+ENTRYPOINT ["node", "bin/www"]

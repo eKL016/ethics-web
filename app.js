@@ -15,12 +15,13 @@ var subjects = require('./routes/subjects');
 var exps = require('./routes/exps');
 var app = express();
 
-mongoose.connect('mongodb://localhost/web-liu');
+mongoose.connect(process.env.MONGODB_URL,
+  {user: process.env.MONGODB_USER, pass: process.env.MONGODB_PASS});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 80);
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));

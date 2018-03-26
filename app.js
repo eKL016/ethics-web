@@ -15,9 +15,8 @@ var subjects = require('./routes/subjects');
 var exps = require('./routes/exps');
 var app = express();
 
-mongoose.connect(process.env.MONGODB_URL+'/web-liu',
-  {user: process.env.MONGODB_USER, pass: process.env.MONGODB_PASS});
-
+mongoose.connect('mongodb://localhost/web-liu');
+console.log('proce')
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');

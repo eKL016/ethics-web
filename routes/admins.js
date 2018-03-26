@@ -54,6 +54,7 @@ function saveFile(req, res, answers, exp_id){
     {label:'College', value:'3.college'},
     {label:'Department', value:'3.department'},
     {label:'Grades', value:'3.grades'},
+    {label:'Score', value:'3.score'},
     {label:'Q1', value:'5'},
     {label:'Q2', value:'6'},
     {label:'Q3', value:'7'},

@@ -16,11 +16,10 @@ var exps = require('./routes/exps');
 var app = express();
 
 mongoose.connect('mongodb://localhost/web-liu');
-console.log('proce')
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.set('port', process.env.PORT || 80);
+app.set('port', 8080);
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -32,7 +31,7 @@ app.use(cookieParser('001'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
     keys: ['001','002'],
-    secret: '001'
+    secret: '001002003004'
 }));
 
 app.use(passport.initialize());

@@ -13,41 +13,37 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 function assign_pair(res, exp, subjects, pair_model){
-  console.log("subjects:", subjects)
   response = []
-  for(var i = 0; i < seed.length-1; i=i+2){
-    pair_model.create({'subject_A': ObjectID(subjects[seed[i]].subject_id), 'subject_B':ObjectID(subjects[seed[i+1]].subject_id), 'Exp':exp}, function(err, pair){
+  for(let i = 0; i < seed.length-1; i=i+2){
+    pair_model.create({'subject_A': ObjectID(subjects[seed[i]].subject_id), 'subject_B':ObjectID(subjects[seed[i+1]].subject_id), 'Exp':exp}, (err, pair) => {
       if(err) response.push(err)
       else{
-        subjects[seed[i]].character = 'A'+ String(i)
-        subjects[seed[i+1]].character = 'B'+ String(i)
+	Subjects.find({_id: ObjectID(subjects[seed[i]].subject_id)}, (err, suba) =>{
+	  suba[0].character = 'A'+ String(i)
+	  suba[0].save()
+	})
+        Subjects.find({_id: ObjectID(subjects[seed[i+1]].subject_id)}, (err, subb) =>{
+	  subb[0].character = 'B'+ String(i)
+	  subb[0].save()
+	})
         exp.closed = true;
-        subjects[seed[i]].save((err) => {
-          if(err) return res.json({msg:err});
-          else subjects[seed[i+1].save((err1) => {
-            if(err1) return res.json({msg:err1});
-            else exp.save((err2) => {
-              if(err2) return res.json({msg:err1});
-              return res.redirect("/admin");
-            });
-          });
-        });
+	exp.save((err) => {
+	  if(err) return res.json({msg:err})
+	  else res.redirect('/admin');
+	})
       }
     })
   }
-  return response
 }
 function shuffle(res, exp, subjects, Exp_pair, cb) {
   var j, x, i;
-  for (i = seed.length - 1; i > 0; i--) {
+  for (let i = seed.length - 1; i > 0; i--) {
       j = Math.floor(Math.random() * (i + 1));
       x = seed[i];
       seed[i] = seed[j];
-      seed[j] = x;
+      seed[j] = x;i
+      if(i==1) return cb(res, exp, subjects, Exp_pair);
   }
-  setTimeout(() => {
-    return cb(res, exp, subjects, Exp_pair);
-  },3000);
 }
 function check_answers(res, pairs, q_array, exp, cb){
 
@@ -164,8 +160,7 @@ router.get('/close/:id', function(req, res){
               });
 
             }
-            response = shuffle(res, exp, subjects, Exp_pair, assign_pair);
-            console.log(response)
+            console.log(shuffle(res, exp, subjects, Exp_pair, assign_pair));
           })
         }
       }
@@ -283,11 +278,13 @@ router.route('/perform/')
         .populate('subject')
         .populate('exp')
         .exec((err, queue) => {
-          console.log(queue);
-          queue.valid = true;
-          queue.save((err) => {
-            res.render('exps/perform', {title: '科技部教學策略', current_user:req.user, exp: queue.exp._id, subject: queue.subject._id});
-          })
+	  if(err || !queue) return res.render('index', {title: '科技部教學策略', alert: '查無報名紀錄！', msg:'', current_user:req.user});
+          else{
+	    queue.valid = true; 
+            queue.save((err) => {
+	      res.render('exps/perform', {title: '科技部教學策略', current_user:req.user, exp: queue.exp._id, subject: queue.subject._id});
+	    }) 
+	  }	
         })
       })
     }

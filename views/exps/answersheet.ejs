@@ -113,4 +113,10 @@
     </div>
 
   </body>
+  <% include ../partials/bootstrap-scripts.ejs %>
+  <script type="text/javascript">
+    jQuery(window).on('load',function(){
+      jQuery('#inform').modal('show');
+    });
+  </script>
 </html>

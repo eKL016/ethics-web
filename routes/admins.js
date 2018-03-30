@@ -59,7 +59,7 @@ function saveFile(req, res, answers, exp_id){
     {label:'Q2', value:'6'},
     {label:'Q3', value:'7'},
     {label:'Q4', value:'8'},
-    {label:'Character', value:'9'}
+    {label:'Character', value:'3.character'}
   ]
   datatype=req.query.datatype
   const json2csvParser = new Json2csvParser({

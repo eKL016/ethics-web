@@ -8,7 +8,8 @@ const questions = [
         score: [
           [20, 30],
           [0, 10]
-        ]
+        ],
+        options: ["提供上等牛肉","提供劣等牛肉"]
       },
       {
         title: '第二題',
@@ -16,7 +17,8 @@ const questions = [
         score: [
           [20, 30],
           [10, 0]
-        ]
+        ],
+        options: ["清垃圾","不清垃圾"]
       },
       {
         title: '第三題',
@@ -24,7 +26,8 @@ const questions = [
         score: [
           [30, 10],
           [0, 10]
-        ]
+        ],
+        options: ["獵捕公鹿","獵捕野兔"]
       },
       {
         title: '第四題',
@@ -43,7 +46,8 @@ const questions = [
         score: [
           [20, 30],
           [0, 10]
-        ]
+        ],
+        options: ["提供上等牛肉","提供劣等牛肉"]
       },
       {
         title: '第二題',
@@ -51,7 +55,8 @@ const questions = [
         score: [
           [20, 30],
           [10, 0]
-        ]
+        ],
+        options: ["清垃圾","不清垃圾"]
       },
       {
         title: '第三題',
@@ -59,7 +64,8 @@ const questions = [
         score: [
           [30, 10],
           [0, 10]
-        ]
+        ],
+        options: ["獵捕公鹿","獵捕野兔"]
       },
       {
         title: '第四題',

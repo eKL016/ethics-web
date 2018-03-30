@@ -7,7 +7,7 @@ var User = require('../models/users');
 passport.use(new LocalStrategy(User.authenticate()));
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: '學術倫理', current_user:req.user, msg:'', alert:''});
+  res.render('index', { title: '首頁', current_user:req.user, msg:'', alert:''});
 });
 
 router.post('/',

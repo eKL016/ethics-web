@@ -40,7 +40,7 @@
                 <label for="exps">選擇場次</label>
                 <select class="form-control" id="exp" name="exp">
                   <% for(i in exps) {%>
-                    <option value="<%= exps[i]._id %>"> <%= exps[i]._id %></option>
+                    <option value="<%= exps[i]._id %>"> <%= exps[i].name + " (" + exps[i]._id + ")"%></option>
                   <% } %>
                 </select>
                 </br>

@@ -87,7 +87,8 @@ router.get('/', function(req, res, next) {
   if ( req.user ){
     Exp.find({closed: false, started: {$ne: null} },(err, unpaired) => {
       Exp.find({closed: true, scored: false}, (err1, unscored) => {
-        return res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user, unpaired: unpaired, unscored: unscored})
+        if (err || err1 ) return res.json({msg:err})
+        else return res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user, unpaired: unpaired, unscored: unscored})
       })
     })
   }
@@ -118,8 +119,8 @@ router.route('/login')
                 if (!admin) res.render("admin/login", { title: '管理員登入', alert: 403, current_user:req.user});
                 else {
                   req.login(admin,function(err){
-                      if(err) return next(err);
-                      return res.redirect("/admin");
+                      if(err) return res.json({msg:err});
+                      else return res.redirect("/admin");
                   });
                 }
             })
@@ -146,7 +147,7 @@ router.route('/init_exp')
     else{
       Question.find({}, function(err, qs){
         if(err) console.log(err)
-        return res.render("exps/set", { title: '測驗準備', alert: 0, current_user:req.user, questions: qs})
+        else return res.render("exps/set", { title: '測驗準備', alert: 0, current_user:req.user, questions: qs})
       })
     }
   })
@@ -154,14 +155,15 @@ router.route('/init_exp')
     if(req.user === undefined ) return res.redirect("/admin/login");
     else{
       User.findById(req.user._id, function(err,doc){
-        if( err ) console.log(err);
-        if( doc === undefined ) {
+        if( err ) return console.log(err);
+        else if( doc === undefined ) {
           console.log("User not found");
           return res.redirect("/admin/login");
-        } else{
+        }
+        else{
           Question.findById(req.body.questions, (err, q) => {
             if(err || !q) return res.json({msg:'無效的測驗代碼'})
-            Exp.create({ performer: req.user.name, question: q , performer_id: req.user._id},function(err,exp){
+            else Exp.create({ performer: req.user.name, question: q , performer_id: req.user._id, name: req.body.name },function(err,exp){
               return res.render("exps/prepare", { title: '測驗準備', alert: 0, current_user:req.user, url: exp._id })
             });
           });
@@ -173,7 +175,7 @@ router.get('/download/', (req, res) => {
   Exp.findOne({'_id': req.query.exps, 'performer_id': req.user._id})
   .populate('question')
   .exec((err, exp) => {
-    if(err | !exp) return res.json({msg: 'Not found'})
+    if(err || !exp) return res.json({msg: 'Not found'})
     else{
       title = exp.question.title;
       questions = exp.question.q_array;

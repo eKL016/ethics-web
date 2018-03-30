@@ -7,6 +7,26 @@
   </head>
   <body>
     <% include ../partials/navbar.ejs %>
+    <!-- Modal -->
+    <div class="modal fade" id="inform" tabindex="-1" role="dialog" aria-labelledby="inform" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">測驗提醒</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            您這次的作答身份為<strong><%= " " + character %></strong>，請務必記下這組代碼以便實驗進行！
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">了解，開始作答</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="container">
       <br><br>
 
@@ -55,11 +75,11 @@
                     <div class="col-sm-10">
                       <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" id="choose-yes<%= i+1%>" name="choose<%= i+1%>" value="true">
-                        <label class="form-check-label" for="choose-yes<%= i+1%>">合作</label>
+                        <label class="form-check-label" for="choose-yes<%= i+1%>"><%= q_array[i].options[0] %></label>
                       </div>
                       <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" id="choose-no<%= i+1%>" name="choose<%= i+1%>" value="false" required>
-                        <label class="form-check-label" for="choose-no<%= i+1%>">不合作</label>
+                        <label class="form-check-label" for="choose-no<%= i+1%>"><%= q_array[i].options[1] %></label>
                       </div>
                     </div>
                   </div>

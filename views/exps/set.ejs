@@ -21,11 +21,14 @@
               <div class="form-group w-75 mx-auto">
                 <br><br>
                 <label for="questions">選擇題庫</label>
-                <select class="form-control" id="questions" name="questions">
+                <select class="form-control" id="questions" name="questions" required>
                   <% for(i in questions) {%>
                     <option value="<%= questions[i]._id %>"> <%= questions[i].title %></option>
                   <% } %>
                 </select>
+                </br>
+                <label for="name">測驗名稱</label>
+                <input type="text" class="form-control" id="name" name="name" aria-describedby="name" placeholder="請輸入測驗名稱" required>
                 </br>
                 <button type="submit" class="btn btn-primary btn-block">設定新實驗</button>
             </form>

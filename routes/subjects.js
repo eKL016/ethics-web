@@ -23,8 +23,8 @@ router.post('/apply/:num', function(req, res){
         if (req.body.username){
           passport.authenticate('local')(req, res, function () {
             req.logIn(subject, function(err) {
-              if (err) { return next(err); }
-              return res.redirect('/exps');
+              if (err) { return res.json({msg:err}); }
+              else return res.redirect('/exps');
             });
           });
         }
@@ -32,7 +32,7 @@ router.post('/apply/:num', function(req, res){
           req.body.username = subject.username
           passport.authenticate('local')(req, res, function () {
             req.logIn(subject, function(err) {
-              if (err) { return next(err); }
+              if (err) { return res.json({msg:err} }
               return res.redirect(307,'/exps/'+req.params.num+'/apply');
             });
           });

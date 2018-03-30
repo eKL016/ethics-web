@@ -19,9 +19,18 @@ function assign_pair(res, exp, subjects, pair_model){
     pair_model.create({'subject_A': ObjectID(subjects[seed[i]].subject_id), 'subject_B':ObjectID(subjects[seed[i+1]].subject_id), 'Exp':exp}, function(err, pair){
       if(err) response.push(err)
       else{
+        subjects[seed[i]].character = 'A'+ String(i)
+        subjects[seed[i+1]].character = 'B'+ String(i)
         exp.closed = true;
-        exp.save((err) => {
-          return res.redirect("/admin");
+        subjects[seed[i]].save((err) => {
+          if(err) return res.json({msg:err});
+          else subjects[seed[i+1].save((err1) => {
+            if(err1) return res.json({msg:err1});
+            else exp.save((err2) => {
+              if(err2) return res.json({msg:err1});
+              return res.redirect("/admin");
+            });
+          });
         });
       }
     })
@@ -100,7 +109,7 @@ router.get('/', function(req, res){
   }
   Exp.find({started: null}, function(err, exps){
     if(err) return console.log(err);
-    return res.json(exps);
+    else return res.json(exps);
   })
 });
 router.get('/list', function(req, res){
@@ -109,7 +118,7 @@ router.get('/list', function(req, res){
   }
   Exp.find({}, function(err, exps){
     if(err) console.log(err);
-    return res.json(exps);
+    else return res.json(exps);
   })
 });
 router.get('/close/:id', function(req, res){
@@ -207,8 +216,8 @@ router.route('/start')
     else{
       Exp.find({started: null}, function(err, exp){
         if(err || !exp ) return res.json({msg:'Unable to start the exp'});
-          return res.render('exps/start',{ title: '測驗開始', alert: 0, current_user:req.user, exps: exp})
-        });
+        else return res.render('exps/start',{ title: '測驗開始', alert: 0, current_user:req.user, exps: exp})
+      });
     }
   })
   .post((req,res) => {
@@ -216,13 +225,15 @@ router.route('/start')
     else{
       Exp.findById(req.body.num, function(err, exp){
         if(err || !exp ) return res.json({msg:'Unable to start the exp'});
-        exp.started = Date.now();
-        exp.save(function(err, updated_exp){
-          if(err || !updated_exp) return res.json({msg:'Unable to start the exp'});
-          else{
-            res.redirect('/admin')
-          }
-        });
+        else{
+          exp.started = Date.now();
+          exp.save(function(err, updated_exp){
+            if(err || !updated_exp) return res.json({msg:'Unable to start the exp'});
+            else{
+              res.redirect('/admin')
+            }
+          });
+        }
       })
     }
   });
@@ -248,7 +259,7 @@ router.post('/apply/:num',function(req, res){
         else{
           Exp.findOne({'_id': req.params.num}, function(err, exp){
             if(err || !exp) return res.render('index', {title: '科技部教學策略', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
-            if(exp.closed) return res.render('index', {title: '科技部教學策略', alert: 'Experiment expires!', msg:'', current_user:req.user})
+            else if(exp.closed) return res.render('index', {title: '科技部教學策略', alert: 'Experiment expires!', msg:'', current_user:req.user})
             else{
               Subject_queue.create({'subject': subject, 'exp': exp, 'subject_id': subject._id, 'exp_id': exp._id},function(err, queue){
                 return res.render('index',{title: '科技部教學策略',msg: '您已成功報名該場次實驗，場次兩天前您會收到我們的通知信！', alert:'',current_user:req.user});
@@ -267,7 +278,7 @@ router.route('/perform/')
     var email = req.query.email;
     if(email.length){
       Subjects.find({'email': email}, (err, subject) => {
-        if(err | !subject) return res.render('index', {title: '科技部教學策略', alert: '查無報名紀錄！', msg:'', current_user:req.user});
+        if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: '查無報名紀錄！', msg:'', current_user:req.user});
         else Subject_queue.findOne({'subject': subject})
         .populate('subject')
         .populate('exp')
@@ -285,7 +296,7 @@ router.route('/perform/')
       var subject = req.query.subject;
       Exp.findById(exp, (err, exp) => {
         if(err || !exp) return res.json(['fail']);
-        if(exp.closed){
+        else if(exp.closed){
           return res.json(['pass']);
         }
         else{
@@ -309,14 +320,17 @@ router.route('/perform/:exp_id/:subject_id')
     subject_id = req.params.subject_id;
     Exp.findById(exp_id).populate('question').exec((err, exp) => {
       if(err || !exp) return res.json(['fail']);
-      if(exp.started === null){
+      else if(exp.started === null){
         return res.redirect('/');
       }
       else{
-        Exp_pair.findOne({$or:[{'subject_A':ObjectID(subject_id)},{'subject_B':ObjectID(subject_id)}]}).exec((err,pair) => {
-          console.log('Pair:',pair)
-          return res.render('exps/answersheet', {title: '作答', alert: 0, current_user:req.user,
-            exp: exp_id, subject: subject_id, question: exp.question, flag:(pair.subject_A==subject_id)
+        Subjects.findById(subject_id, (err, sub) => {
+          if (err || !sub) return res.json(['fail']);
+          else Exp_pair.findOne({$or:[{'subject_A':ObjectID(subject_id)},{'subject_B':ObjectID(subject_id)}]}).exec((err,pair) => {
+            if (err || !pair) return res.json(['fail']);
+            return res.render('exps/answersheet', {title: '作答', character: sub.character, alert: 0, current_user:req.user,
+              exp: exp_id, subject: subject_id, question: exp.question, flag:(pair.subject_A==subject_id)
+            });
           });
         });
       }
@@ -334,7 +348,7 @@ router.route('/perform/:exp_id/:subject_id')
     answers.push(Number(req.body.choose4))
     Subjects.findById(subject_id, (err, subject) => {
       if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: '發生未知的錯誤！', msg:'', current_user:req.user});
-      if(subject.answer) return res.render('index', {title: '科技部教學策略', alert: '你已經於該場次作答過了！', msg:'', current_user:req.user});
+      else if(subject.answer) return res.render('index', {title: '科技部教學策略', alert: '你已經於該場次作答過了！', msg:'', current_user:req.user});
       else{
         var new_answer = new Answers({
           ans_array: answers

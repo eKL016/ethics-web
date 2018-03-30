@@ -12,7 +12,8 @@ var Exp = new Schema({
     closed: {type: Boolean, default: false},
     started: { type: Date, default: null},
     scored: { type: Boolean, default: false},
-    question: {type: mongoose.Schema.Types.ObjectId, ref: 'Question'}
+    question: {type: mongoose.Schema.Types.ObjectId, ref: 'Question'},
+    name: String
   },
   {
     timestamps: { createdAt: 'created_at' }

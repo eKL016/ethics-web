@@ -23,7 +23,7 @@
                 <label for="exps">已完結之測驗</label>
                 <select class="form-control" id="exps" name="exps">
                   <% for(i in exps) {%>
-                    <option value="<%= exps[i]._id %>"> <%= exps[i]._id + " @ " + exps[i].started_at %></option>
+                    <option value="<%= exps[i]._id %>"> <%= exps[i].name + " (" + exps[i]._id + ")"%></option>
                   <% } %>
                 </select>
                 <br>

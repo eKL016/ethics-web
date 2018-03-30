@@ -26,14 +26,16 @@ function assign_pair(res, exp, subjects, pair_model){
       	  subb[0].character = 'B'+ String(i)
       	  subb[0].save()
       	})
-        exp.closed = true;
-      	exp.save((err) => {
-      	  if(err) return res.json({msg:err})
-      	  else res.redirect('/admin');
-      	})
       }
     })
   }
+  setTimeout(() => {
+    exp.closed = true;
+    exp.save((err) => {
+      if(err) return res.json({msg:err})
+      else res.redirect('/admin');
+    })
+  }, 3000)
 }
 function shuffle(res, exp, subjects, Exp_pair, cb) {
   var j, x, i;

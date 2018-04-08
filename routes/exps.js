@@ -4,6 +4,8 @@ var validator = require("email-validator");
 var passport = require('passport');
 var ObjectID = require('mongodb').ObjectID;
 const Subjects = require('../models/subjects');
+const Postq = require('../models/post-q');
+const Post_os = require('../models/post-option');
 const Answers = require('../models/answers')
 const User = require('../models/users');
 const Exp = require('../models/exps');
@@ -66,39 +68,44 @@ function check_answers(res, pairs, q_array, exp, cb){
   }
 }
 function scoring(res, pairs, q_array, exp){
-  Subject_queue.remove({ exp_id: exp._id }, (err) => {
-  if (err) console.log(err);
-    for(i in pairs){
-      Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score').populate('answers').exec((err, subject_A)=>{
-        Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score').populate('answers').exec((err, subject_B)=>{
-          var flag = false;
-          var scoreA = 0;
-          var scoreB = 0;
-          eoq = 3;
+  for(i in pairs){
+    Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score').populate('answers').exec((err, subject_A)=>{
+      Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score').populate('answers').exec((err, subject_B)=>{
+        var flag = false;
+        var scoreA = [];
+        var scoreB = [];
+        eoq = 3;
 
-          for(var j=0; j<eoq; j++){
+        for(var j=0; j<eoq; j++){
 
-              scoreA += q_array[j].score[1^subject_B.answers.ans_array[j]][1^subject_A.answers.ans_array[j]];
-              scoreB += q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]];
+            scoreA.push(q_array[j].score[1^subject_B.answers.ans_array[j]][1^subject_A.answers.ans_array[j]]);
+            scoreB.push(q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]]);
 
-          }
-          if(subject_A.answers.ans_array[eoq]>=subject_B.answers.ans_array[eoq]){
-            scoreA += (100 - subject_A.answers.ans_array[eoq]);
-            scoreB += subject_A.answers.ans_array[eoq];
-          };
-          subject_A.score = scoreA;
-          subject_B.score = scoreB;
-          subject_A.save((err) => {
-            subject_B.save((err) =>{
-                exp.save((err) => {
+        }
+        if(subject_A.answers.ans_array[eoq]>=subject_B.answers.ans_array[eoq]){
+          scoreA.push(100 - subject_A.answers.ans_array[eoq]);
+          scoreB.push(subject_A.answers.ans_array[eoq]);
+        }
+        else{
+          scoreA.push(0);
+          scoreB.push(0);
+        };
+
+        subject_A.score = scoreA;
+        subject_B.score = scoreB;
+        subject_A.save((err) => {
+          subject_B.save((err) =>{
+              exp.scored = true;
+              exp.save((err) => {
+                Subject_queue.remove({ exp_id: exp._id }, (err) => {
                   return res.redirect('/admin');
-                })
-            })
-          });
-        })
+                });
+              });
+          })
+        });
       })
-    };
-  });
+    })
+  };
 }
 
 router.get('/', function(req, res){
@@ -119,7 +126,7 @@ router.get('/list', function(req, res){
     else return res.json(exps);
   })
 });
-router.get('/close/:id', function(req, res){
+router.get('/close/:id/', function(req, res){
   if(!req.user){
     return res.json({msg:"Must login first!"});
   }
@@ -171,7 +178,7 @@ router.get('/close/:id', function(req, res){
   }
 });
 
-router.get('/end/:id', (req, res) => {
+router.get('/end/:id/:force', (req, res) => {
   if(!req.user){
     return res.json({msg:"Must login first!"});
   }
@@ -186,7 +193,10 @@ router.get('/end/:id', (req, res) => {
       else if( exp.scored == true){
         return res.json({msg:"Ended"})
       }
-      else{
+      else if( Number(req.params.force) ){
+
+      }
+      else {
         if(err) return res.json({msg:"Attemped to close an exp fail"});
         else{
           exp.scored = true;
@@ -357,13 +367,60 @@ router.route('/perform/:exp_id/:subject_id')
         subject.answers = new_answer;
         subject.save((err, ans) => {
           if(err || !ans) return res.render('index', {title: '科技部教學策略', alert: '發生未知的錯誤！', msg:'', current_user:req.user});
-          else return res.render('index', {title: '科技部教學策略', alert: '', msg:'完成作答！請靜待實驗主持人宣佈事項。', current_user:req.user});
+          else return res.redirect('/exps/postq/'+subject._id);
         })
       }
     })
   });
 
+router.route('/postq/:id')
+  .get((req, res) => {
+    const get_Postq = (postq, ans, index, origin) => {
+       if( index != origin.length - 1) postq.push(ans?0:1);
+       return postq
+    }
+    Subjects.findOne({_id:req.params.id, finished: false}).populate('answers').exec((err, subject) => {
+      if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: '查無使用者或已經作答完畢！', msg:'', current_user:req.user});
+      else{
+        console.log(subject.answers);
+        post_q = subject.answers.ans_array.reduce(get_Postq, []);
+        post_q.push(subject.character[0]=='A'?0:1);
+        Post_os.findOne({}).exec((err, opts) => {
+          console.log(err)
+          console.log(opts)
+          return res.render('exps/postq', {title: '科技部教學策略', postq: post_q, current_user:req.user, opts: opts, character: subject.character, subject: subject._id});
+        })
+      }
+    })
+  })
+  .post((req, res) => {
+    Subjects.findOne({_id:req.params.id, finished: false}, (err, subject) => {
+      if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: '查無使用者或已經作答完畢！', msg:'', current_user:req.user});
+      else{
+        keys = [ 'option-1-0','option-1-1','option-1-2','option-1-3',
+          'option-2-0','option-2-1','option-2-2','option-2-3',
+          'option-3-0','option-3-1','option-3-2','option-3-3',
+          'option-4-0','option-4-1','option-4-2','option-4-3','option-4-4' ]
 
+        postq_ans = keys.map((key) => key in req.body? req.body[key]:"");
+        console.log(postq_ans)
+        Postq.create({ans_array: postq_ans}, (err, success) => {
+          if(err) return res.json({msg:'Error!'});
+          else{
+            console.log(subject);
+            subject.postq = success;
+            subject.finished = true;
+            subject.save((err, end) => {
+              if(err) return res.json({msg:'Error!'});
+              else{
+                return res.render('index', {title: '科技部教學策略', alert: '', msg:'作答完畢，請靜待主持人宣佈後續事宜', current_user:req.user});
+              }
+            })
+          }
+        })
+      }
+    })
+  })
 
 
 

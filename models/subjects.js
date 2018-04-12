@@ -10,9 +10,11 @@ const Subjects = new Schema({
     department: String,
     grades: String,
     gender: Boolean,
-    score: Number,
+    score: Array,
     character: String,
-    answers: {type: mongoose.Schema.Types.ObjectId, ref: 'Answer'}
+    answers: {type: mongoose.Schema.Types.ObjectId, ref: 'Answer'},
+    postq: {type: mongoose.Schema.Types.ObjectId, ref: 'Postq'},
+    finished: {type: Boolean, default: false}
   }
 );
 

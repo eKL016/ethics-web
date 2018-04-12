@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include ../partials/base.ejs %>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <% include ../partials/navbar.ejs %>
+    <!-- Modal -->
+    <div class="modal fade" id="inform" tabindex="-1" role="dialog" aria-labelledby="inform" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">提醒</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            恭喜您作答完畢，再次提醒您本次測驗你的作答身份為<strong><%=character%></strong><br>
+            請牢記此代碼以利實驗進行，接下來最後請您完成測後問卷。
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">了解，開始作答</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <br><br>
+
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-dark text-white">
+                測後問卷
+            </div>
+
+            <form method="POST" target="_self" id="ans" action="/exps/postq/<%= subject%>">
+              <% let c = post_q %>
+              <% let display = { questions: opts.questions.map((e, i) => [e[c[i]]]), options: opts.options.map((e, i) => [e[c[i]]])}%>
+              <% for (var i = 0; i<4; i++) {%>
+                  <div class="w-75 mx-auto form-group">
+                    <br>
+                    <h5><%= i+1 + '.' %></h5>
+                    <p><%- display.questions[i] %></p>
+                  </div>
+
+                  <% for (let j = 0; j<display.options[i][0].length; j++){ %>
+                    <div class="w-75 mx-auto form-group row">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="option-<%= i+1%>-<%= j%>" name="option-<%= i+1%>-<%= j%>">
+                        <label class="form-check-label" for="option-<%= i+1%>-<%= j%>"><%= display.options[i][0][j] %></label>
+                      </div>
+                    </div>
+                  <%}%>
+
+                  <div class="w-75 mx-auto form-group row">
+                    <label for="option-<%= i+1%>-<%= display.options[i][0].length %>">其他</label>
+                    <input type="text" class="form-control" id="option-<%= i+1%>-<%= display.options[i][0].length %>"
+                    name="option-<%= i+1%>-<%= display.options[i][0].length %>", placeholder="若有其他原因，請詳述。">
+                  </div>
+                  <br>
+
+                  <hr>
+                  <br>
+              <%}%>
+              <button target="_self" type="submit" class="next btn btn-lg btn-block btn-success w-75 mx-auto">結束作答</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+
+
+
+
+    </div>
+
+  </body>
+  <% include ../partials/bootstrap-scripts.ejs %>
+  <script type="text/javascript" src="/scripts/parsley.js"></script>
+  <script type="text/javascript" src="/scripts/parsley-zhtw.js"></script>
+  <script type="text/javascript" src="/scripts/answersheet.js"></script>
+</html>

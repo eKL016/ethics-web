@@ -18,7 +18,8 @@
             </button>
           </div>
           <div class="modal-body">
-            您這次的作答身份為<strong><%= " " + character %></strong>，請務必記下這組代碼以便實驗進行！
+            您這次的作答身份為<strong><%= " " + character %></strong>，請務必記下這組代碼以便實驗進行！<br>
+            另外，一但作答完某題便沒有辦法回到該題，故請您省慎作答！
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-danger" data-dismiss="modal">了解，開始作答</button>
@@ -41,66 +42,87 @@
             <form method="POST" target="_self" id="ans" action="/exps/perform/<%= exp %>/<%= subject %>">
               <% var q_array = question.q_array %>
               <% for (var i = 0; i<4; i++) {%>
-                <div class="w-75 mx-auto form-group">
-                  <br>
-                  <h5><%= q_array[i].title %></h5>
-                  <p><%- q_array[i].text %></p>
-                  <%if(q_array[i].score != undefined) {%>
-                    <div class="table-responsive">
-                      <table class="table">
-                        <thead class="thead-dark">
-                          <tr>
-                            <th scope="col">你選擇</th>
-                            <th scope="col">合作</th>
-                            <th scope="col">不合作</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <th scope="row">他人選擇合作</th>
-                            <td><%= q_array[i].score[0][0] + "元"%></td>
-                            <td><%= q_array[i].score[0][1] + "元"%></td>
-                          </tr>
-                          <tr>
-                            <th scope="row">他人選擇不合作</th>
-                            <td><%= q_array[i].score[1][0] + "元"%></td>
-                            <td><%= q_array[i].score[1][1] + "元"%></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div class="w-75 mx-auto form-group row">
-                    <label for="choose" class="col-sm-2 col-form-label">你選擇</label>
-                    <div class="col-sm-10">
-                      <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="choose-yes<%= i+1%>" name="choose<%= i+1%>" value="true">
-                        <label class="form-check-label" for="choose-yes<%= i+1%>"><%= q_array[i].options[0] %></label>
-                      </div>
-                      <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="choose-no<%= i+1%>" name="choose<%= i+1%>" value="false" required>
-                        <label class="form-check-label" for="choose-no<%= i+1%>"><%= q_array[i].options[1] %></label>
+                <div id="question<%= i%>" style="display:none">
+                  <div class="w-75 mx-auto form-group">
+                    <br>
+                    <h5><%= q_array[i].title %></h5>
+                    <p><%- q_array[i].text %></p>
+                    <%if(q_array[i].score != undefined) {%>
+                      <div class="table-responsive">
+                        <table class="table">
+                          <thead class="thead-dark">
+                            <tr>
+                              <th scope="col">你選擇</th>
+                              <th scope="col"><%= q_array[i].options[0] %></th>
+                              <th scope="col"><%= q_array[i].options[1] %></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <th scope="row">他人選擇<%= q_array[i].options[0] %></th>
+                              <td><%= q_array[i].score[0][0] + "元"%></td>
+                              <td><%= q_array[i].score[0][1] + "元"%></td>
+                            </tr>
+                            <tr>
+                              <th scope="row">他人選擇<%= q_array[i].options[1] %></th>
+                              <td><%= q_array[i].score[1][0] + "元"%></td>
+                              <td><%= q_array[i].score[1][1] + "元"%></td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </div>
-                  </div>
-                  <hr>
-                  <%} else {%>
-                  <% if (flag) { var char="你提議" %>
-                  <p><%- q_array[i].subject_a %></p>
-                  <%} else { var char="你反應" %>
-                  <p><%- q_array[i].subject_b %></p>
-                  <% } %>
-                  </div>
-                  <div class="w-75 mx-auto form-group row">
-                    <label for="choose<%= i+1%>" class="col-sm-2 col-form-label"><%= char%></label>
-                    <div class="col-sm-10">
-                      <input type="text" class="form-control" id="choose<%= i+1%>" name="choose<%= i+1%>" placeholder="多少金額？" required>
+                    <div class="w-75 mx-auto form-group row">
+                      <label for="choose" class="col-sm-2 col-form-label">你選擇</label>
+                      <div class="col-sm-10">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input opt" type="radio" id="choose-yes<%= i+1%>" name="choose<%= i+1%>" value="true" data-parsley-required>
+                          <label class="form-check-label" for="choose-yes<%= i+1%>"><%= q_array[i].options[0] %></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input " type="radio" id="choose-no<%= i+1%>" name="choose<%= i+1%>" value="false">
+                          <label class="form-check-label" for="choose-no<%= i+1%>"><%= q_array[i].options[1] %></label>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <hr>
-                  <%}%>
+                    <hr>
+                    <%} else {%>
+                    <% if (flag) { var char="你提議" %>
+                    <p><%- q_array[i].subject_a %></p>
+                    <%} else { var char="你反應" %>
+                    <p><%- q_array[i].subject_b %></p>
+                    <% } %>
+                    </div>
+                    <div class="w-75 mx-auto form-group row">
+                      <label for="choose<%= i+1%>" class="col-sm-2 col-form-label"><%= char%></label>
+                      <label for="choose<%= i+1%>" class="col-sm-2 col-form-label" id="indicator"></label>
+                      <br>
+                      <div class="col-sm-10">
+                        <input type="range" class="form-control opt" id="choose<%= i+1%>" name="choose<%= i+1%>"
+                        min="0" max="100" data-parsley-range="[0, 100]" onchange="updateTextInput(this.value);" list="tickmarks">
+                        <datalist id="tickmarks">
+                          <option value="0">
+                          <option value="10">
+                          <option value="20">
+                          <option value="30">
+                          <option value="40">
+                          <option value="50">
+                          <option value="60">
+                          <option value="70">
+                          <option value="80">
+                          <option value="90">
+                          <option value="100">
+                        </datalist>
+                      </div>
+                    </div>
+                    <%}%>
+                    <%if (i!= 3) {%>
+                      <button target="_self" type="submit" class="next btn btn-lg btn-block btn-danger w-75 mx-auto">下一題</button>
+                    <%}else{%>
+                      <button target="_self" type="submit" class="next btn btn-lg btn-block btn-success w-75 mx-auto">結束作答</button>
+                    <%}%>
+                </div>
               <%}%>
-              <button target="_self" type="submit" class="btn btn-success btn-lg btn-block w-75 mx-auto">作答完畢</button>
             </form>
           </div>
         </div>
@@ -114,9 +136,7 @@
 
   </body>
   <% include ../partials/bootstrap-scripts.ejs %>
-  <script type="text/javascript">
-    jQuery(window).on('load',function(){
-      jQuery('#inform').modal('show');
-    });
-  </script>
+  <script type="text/javascript" src="/scripts/parsley.js"></script>
+  <script type="text/javascript" src="/scripts/parsley-zhtw.js"></script>
+  <script type="text/javascript" src="/scripts/answersheet.js"></script>
 </html>

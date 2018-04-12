@@ -35,9 +35,10 @@
               <%for (exp in unscored) {%>
                 <li class="list-group-item">
                   <div class="row">
-                  <div class="col-lg-10"><%= unscored[exp].name + " (" + unscored[exp]._id + ")" %></div>
-                  <div class="col-lg-2">
-                    <button type="button" class="ml-auto d-inline btn btn-danger btn-sm" onclick="location.href='/exps/end/<%= unscored[exp]._id%>'">結束並計分</button>
+                  <div class="col-lg-8"><%= unscored[exp].name + " (" + unscored[exp]._id + ")" %></div>
+                  <div class="col-lg-4">
+                    <button type="button" class="ml-auto d-inline btn btn-danger btn-sm" onclick="location.href='/exps/end/<%= unscored[exp]._id%>/1'">強制結束</button>
+                    <button type="button" class="ml-auto d-inline btn btn-success btn-sm" onclick="location.href='/exps/end/<%= unscored[exp]._id%>/0'">結束並計分</button>
                   </div>
                   </div>
                 </li>

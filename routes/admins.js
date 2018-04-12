@@ -21,45 +21,57 @@ function prepareFile(req, res, exp, cb){
   .populate('subject_A')
   .populate('subject_B')
   .exec((err, pairs) => {
+    const sum = (accumulator, currentValue) => accumulator + currentValue;
+    const parser = (content) => content == 'on'? "O":String(content);
     for(i in pairs){
       Subject.findOne({_id:pairs[i].subject_A._id})
       .populate('answers')
+      .populate('postq')
       .exec((err, subject)=>{
-        if(subject.email != 'placeholder') answers.push(
-          Object.keys(subject).map(function(key){ return subject[key] })
+        console.log(subject.score)
+        if(subject.email != 'placeholder'){
+          answers.push(Object.keys(subject).map(function(key){ return subject[key] })
           .concat(subject.answers.ans_array)
-          .concat(['A',exp._id])
-        );
+          .concat(subject.score)
+          .concat(subject.score.reduce(sum))
+          .concat(subject.postq.ans_array.map(parser))
+        )};
+
       })
       Subject.findOne({_id:pairs[i].subject_B._id})
       .populate('answers')
+      .populate('postq')
       .exec((err, subject)=>{
-        if(subject.email != 'placeholder') answers.push(
-          Object.keys(subject).map(function(key){ return subject[key] })
+        console.log(subject.score)
+        if(subject.email != 'placeholder'){
+          answers.push(Object.keys(subject).map(function(key){ return subject[key] })
           .concat(subject.answers.ans_array)
-          .concat(['B',exp._id])
-        );
+          .concat(subject.score)
+          .concat(subject.score.reduce(sum))
+          .concat(subject.postq.ans_array.map(parser))
+        )};
       })
     }
   })
-  setTimeout(cb, 5000, req, res, answers, exp._id);
+  setTimeout(cb, 5000, req, res, answers, exp.name);
 }
 
-function saveFile(req, res, answers, exp_id){
+function saveFile(req, res, answers, exp_name){
   const fields = [
-    {label:'Exp_id', value:'10'},
+    {label:'Character', value:'3.character'},
     {label:'Email', value:'3.email'},
     {label:'Gender', value:'3.gender'},
     {label:'School', value:'3.school'},
     {label:'College', value:'3.college'},
     {label:'Department', value:'3.department'},
     {label:'Grades', value:'3.grades'},
-    {label:'Score', value:'3.score'},
-    {label:'Q1', value:'5'},
-    {label:'Q2', value:'6'},
-    {label:'Q3', value:'7'},
-    {label:'Q4', value:'8'},
-    {label:'Character', value:'3.character'}
+    {label:'Score', value:'13'},
+    {label:'Q1', value:'5'},{label:'Q2', value:'6'},{label:'Q3', value:'7'},{label:'Q4', value:'8'},
+    {label:'R1', value:'9'},{label:'R2', value:'10'},{label:'R3', value:'11'},{label:'R4', value:'12'},
+    {label:'P1-1', value:'14'},{label:'P1-2', value:'15'},{label:'P1-3', value:'16'},{label:'P1-4', value:'17'},
+    {label:'P2-1', value:'18'},{label:'P2-2', value:'19'},{label:'P2-3', value:'20'},{label:'P2-4', value:'21'},
+    {label:'P3-1', value:'22'},{label:'P3-2', value:'23'},{label:'P3-3', value:'24'},{label:'P3-4', value:'25'},
+    {label:'P4-1', value:'26'},{label:'P4-2', value:'27'},{label:'P4-3', value:'28'},{label:'P4-4', value:'29'},{label:'P4-5', value:'30'}
   ]
   datatype=req.query.datatype
   const json2csvParser = new Json2csvParser({
@@ -73,7 +85,7 @@ function saveFile(req, res, answers, exp_id){
     var f = fs.createWriteStream(path);
     f.write(csv);
     f.end(() => {
-      return res.download(path, exp_id+'.'+datatype, (err) => {
+      return res.download(path, exp_name+'.'+datatype, (err) => {
         cleanupCallback();
       });
     });
@@ -172,7 +184,7 @@ router.route('/init_exp')
     };
   });
 router.get('/download/', (req, res) => {
-  Exp.findOne({'_id': req.query.exps, 'performer_id': req.user._id})
+  Exp.findOne({'_id': req.query.exps})
   .populate('question')
   .exec((err, exp) => {
     if(err || !exp) return res.json({msg: 'Not found'})
@@ -180,7 +192,6 @@ router.get('/download/', (req, res) => {
       title = exp.question.title;
       questions = exp.question.q_array;
       prepareFile(req, res, exp, saveFile);
-
     }
   })
 })

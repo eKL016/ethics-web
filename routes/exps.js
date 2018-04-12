@@ -49,37 +49,15 @@ function shuffle(res, exp, subjects, Exp_pair, cb) {
       if(i==1) return cb(res, exp, subjects, Exp_pair);
   }
 }
-function check_answers(res, pairs, q_array, exp, cb){
-  let stop = false
-  console.log(pairs.length)
-  for(i in pairs){
-    Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score finished').populate('answers').exec((err, subject_A)=>{
-      Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score finished').populate('answers').exec((err, subject_B)=>{
 
-        if( !subject_A.finished || !subject_B.finished ) {
-          stop = true;
-        }
-
-      })
-    })
-  }
-  while(1) {
-    if(i == pairs.length-1 && !stop){
-      return cb(res, pairs, q_array, exp);
-    }
-    if(stop) return res.redirect('/admin')
-  }
-}
 function scoring(res, pairs, q_array, exp){
-  r = []
-  stop = false
-  for(i in pairs){
-    Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score').populate('answers').exec((err, subject_A)=>{
-      Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score').populate('answers').exec((err, subject_B)=>{
-        console.log(subject_A)
-        console.log(subject_B)
-        var scoreA = [];
-        var scoreB = [];
+
+  for(let i in pairs){
+    Subjects.findById(pairs[i].subject_A._id, 'answers score').populate('answers').exec((err, subject_A)=>{
+      Subjects.findById(pairs[i].subject_B._id, 'answers score').populate('answers').exec((err, subject_B)=>{
+
+        let scoreA = [];
+        let scoreB = [];
         eoq = 3;
 
         for(var j=0; j<eoq; j++){
@@ -99,19 +77,24 @@ function scoring(res, pairs, q_array, exp){
 
         subject_A.score = scoreA;
         subject_B.score = scoreB;
+
         subject_A.save((err) => {
-          subject_B.save((err) =>{
-              exp.scored = true;
-              exp.save((err) => {
-                Subject_queue.remove({ exp_id: exp._id }, (err) => {
-                  return res.redirect('/admin');
-                });
-              });
-          })
+          console.log("Set A")
+        });
+        subject_B.save((err) =>{
+          console.log("Set B")
         });
       })
     })
   };
+  setTimeout((exp) => {
+    exp.scored = true;
+    exp.save((err) => {
+      Subject_queue.remove({ exp_id: exp._id }, (err) => {
+        return res.redirect('/admin');
+      });
+    });
+  }, 5000, exp)
 }
 
 router.get('/', function(req, res){
@@ -167,7 +150,7 @@ router.get('/close/:id/', function(req, res){
                   placeholder.answers = ans;
                   placeholder.finished = true;
                   placeholder.save((err, placeholder) => {
-                    Subject_queue.create({'subject': placeholder, 'exp': exp, 'subject_id': placeholder._id , 'exp_id': exp._id}, (err, placeholder) => {
+                    Subject_queue.create({'subject': ObjectID(placeholder._id), 'exp': exp, 'subject_id': placeholder._id , 'exp_id': exp._id}, (err, placeholder) => {
                       seed.push(seed.length);
                       subjects.push(placeholder);
                       console.log(shuffle(res, exp, subjects, Exp_pair, assign_pair));
@@ -201,23 +184,78 @@ router.get('/end/:id/:force', (req, res) => {
         return res.json({msg:"Ended"})
       }
       else if( Number(req.params.force) ){
+        if(err) return res.json({msg:"Attemped to close an exp fail"});
+        else{
+          Subject_queue.find({'exp_id': exp._id})
+          .populate({path:'subject',select:'finished', match:{finished: false}})
+          .exec((err, undone) => {
+            undone = undone.filter(function(u) {
+              return u.subject; // return only users with email matching 'type: "Gmail"' query
+            });
+            if(err) return res.json({msg:err})
+            else{
+              undone.forEach((u) => {
+                u = u.subject;
+                let answer = new Answers({
+                  ans_array:[
+                    Math.floor(Math.random()*100)%2 == 0,
+                    Math.floor(Math.random()*100)%2 == 0,
+                    Math.floor(Math.random()*100)%2 == 0,
+                    Math.floor(Math.random()*15)+30,
+                  ]
+                })
+                Answers.create(answer, (err, ans) => {
 
+                  u.answers = ans;
+                  u.email = 'placeholder';
+                  u.save((err) => {
+                    if(err) console.log(err)
+                  });
+                })
+              });
+              Exp_pair.find({'Exp': exp._id}).populate({
+                path:'subject_A', select:'answers', options: {lean: true}
+              }).populate({
+                path:'subject_B', select:'answers', options: {lean: true}
+              }).exec((err, pairs) => {
+                q_array = exp.question.q_array
+                if(err) return res.json({msg: err});
+                else {
+                  scoring(res, pairs, q_array, exp);
+                }
+              })
+            }
+          });
+        }
       }
       else {
         if(err) return res.json({msg:"Attemped to close an exp fail"});
         else{
-          Exp_pair.find({'Exp': exp._id}).populate({
-            path:'subject_A', select:'answers', options: {lean: true}
-          }).populate({
-            path:'subject_B', select:'answers', options: {lean: true}
-          }).exec((err, pairs) => {
-                console.log(pairs)
+          Subject_queue.find({'exp_id': exp._id})
+          .populate({path:'subject',select:'finished', match:{finished: false}})
+          .exec((err, undone) => {
+            undone = undone.filter(function(u) {
+              return u.subject; // return only users with email matching 'type: "Gmail"' query
+            });
+            if(err) return res.json({msg:err})
+            else if (undone.length > 0) {
+              return res.redirect("/admin");
+            }
+            else{
+              Exp_pair.find({'Exp': exp._id}).populate({
+                path:'subject_A', select:'answers', options: {lean: true}
+              }).populate({
+                path:'subject_B', select:'answers', options: {lean: true}
+              }).exec((err, pairs) => {
                 q_array = exp.question.q_array
                 if(err) return res.json({msg: err});
                 else {
-                  check_answers(res, pairs, q_array, exp, scoring);
+                  scoring(res, pairs, q_array, exp);
                 }
-          })
+              })
+            }
+          });
+
         }
       }
     });
@@ -275,7 +313,7 @@ router.post('/apply/:num',function(req, res){
             if(err || !exp) return res.render('index', {title: '科技部教學策略', alert: 'Unable to fetch an exp!', msg:'', current_user:req.user});
             else if(exp.closed) return res.render('index', {title: '科技部教學策略', alert: 'Experiment expires!', msg:'', current_user:req.user})
             else{
-              Subject_queue.create({'subject': subject, 'exp': exp, 'subject_id': subject._id, 'exp_id': exp._id},function(err, queue){
+              Subject_queue.create({'subject': ObjectID(subject._id), 'exp': exp, 'subject_id': subject._id, 'exp_id': exp._id},function(err, queue){
                 return res.render('index',{title: '科技部教學策略',msg: '您已成功報名該場次實驗，場次兩天前您會收到我們的通知信！', alert:'',current_user:req.user});
               });
             }
@@ -341,7 +379,7 @@ router.route('/perform/:exp_id/:subject_id')
       }
       else{
         Subjects.findById(subject_id, (err, sub) => {
-          if (err || !sub) return res.json(['fail']);
+          if (err || !sub || sub.finished ) return res.json(['fail']);
           else Exp_pair.findOne({$or:[{'subject_A':ObjectID(subject_id)},{'subject_B':ObjectID(subject_id)}]}).exec((err,pair) => {
             if (err || !pair) return res.json(['fail']);
             return res.render('exps/answersheet', {title: '作答', character: sub.character, alert: 0, current_user:req.user,

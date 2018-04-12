@@ -28,6 +28,7 @@ function prepareFile(req, res, exp, cb){
       .populate('answers')
       .populate('postq')
       .exec((err, subject)=>{
+        console.log(subject.score)
         if(subject.email != 'placeholder'){
           answers.push(Object.keys(subject).map(function(key){ return subject[key] })
           .concat(subject.answers.ans_array)
@@ -41,6 +42,7 @@ function prepareFile(req, res, exp, cb){
       .populate('answers')
       .populate('postq')
       .exec((err, subject)=>{
+        console.log(subject.score)
         if(subject.email != 'placeholder'){
           answers.push(Object.keys(subject).map(function(key){ return subject[key] })
           .concat(subject.answers.ans_array)

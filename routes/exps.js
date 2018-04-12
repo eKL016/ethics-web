@@ -21,11 +21,11 @@ function assign_pair(res, exp, subjects, pair_model){
       if(err) response.push(err)
       else{
       	Subjects.find({_id: ObjectID(subjects[seed[i]].subject_id)}, (err, suba) =>{
-      	  suba[0].character = 'A'+ String(i)
+      	  suba[0].character = 'A'+ String(i/2)
       	  suba[0].save()
       	})
         Subjects.find({_id: ObjectID(subjects[seed[i+1]].subject_id)}, (err, subb) =>{
-      	  subb[0].character = 'B'+ String(i)
+      	  subb[0].character = 'B'+ String(i/2)
       	  subb[0].save()
       	})
       }
@@ -45,33 +45,39 @@ function shuffle(res, exp, subjects, Exp_pair, cb) {
       j = Math.floor(Math.random() * (i + 1));
       x = seed[i];
       seed[i] = seed[j];
-      seed[j] = x;i
+      seed[j] = x;
       if(i==1) return cb(res, exp, subjects, Exp_pair);
   }
 }
 function check_answers(res, pairs, q_array, exp, cb){
-
+  let stop = false
   console.log(pairs.length)
   for(i in pairs){
-    Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score').populate('answers').exec((err, subject_A)=>{
-      Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score').populate('answers').exec((err, subject_B)=>{
+    Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score finished').populate('answers').exec((err, subject_A)=>{
+      Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score finished').populate('answers').exec((err, subject_B)=>{
 
-        if(!subject_A.answers || !subject_B.answers ) {
-          return res.redirect('/admin');
-        }
-        else if(i == pairs.length-1 ){
-          return cb(res, pairs, q_array, exp);
+        if( !subject_A.finished || !subject_B.finished ) {
+          stop = true;
         }
 
       })
     })
   }
+  while(1) {
+    if(i == pairs.length-1 && !stop){
+      return cb(res, pairs, q_array, exp);
+    }
+    if(stop) return res.redirect('/admin')
+  }
 }
 function scoring(res, pairs, q_array, exp){
+  r = []
+  stop = false
   for(i in pairs){
     Subjects.findById(ObjectID(pairs[i].subject_A._id), 'answers score').populate('answers').exec((err, subject_A)=>{
       Subjects.findById(ObjectID(pairs[i].subject_B._id), 'answers score').populate('answers').exec((err, subject_B)=>{
-        var flag = false;
+        console.log(subject_A)
+        console.log(subject_B)
         var scoreA = [];
         var scoreB = [];
         eoq = 3;
@@ -159,6 +165,7 @@ router.get('/close/:id/', function(req, res){
                 console.log(answer)
                 Answers.create(answer, (err, ans) => {
                   placeholder.answers = ans;
+                  placeholder.finished = true;
                   placeholder.save((err, placeholder) => {
                     Subject_queue.create({'subject': placeholder, 'exp': exp, 'subject_id': placeholder._id , 'exp_id': exp._id}, (err, placeholder) => {
                       seed.push(seed.length);
@@ -199,7 +206,6 @@ router.get('/end/:id/:force', (req, res) => {
       else {
         if(err) return res.json({msg:"Attemped to close an exp fail"});
         else{
-          exp.scored = true;
           Exp_pair.find({'Exp': exp._id}).populate({
             path:'subject_A', select:'answers', options: {lean: true}
           }).populate({

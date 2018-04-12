@@ -51,10 +51,10 @@ function prepareFile(req, res, exp, cb){
       })
     }
   })
-  setTimeout(cb, 5000, req, res, answers, exp._id);
+  setTimeout(cb, 5000, req, res, answers, exp.name);
 }
 
-function saveFile(req, res, answers, exp_id){
+function saveFile(req, res, answers, exp_name){
   const fields = [
     {label:'Character', value:'3.character'},
     {label:'Email', value:'3.email'},
@@ -83,7 +83,7 @@ function saveFile(req, res, answers, exp_id){
     var f = fs.createWriteStream(path);
     f.write(csv);
     f.end(() => {
-      return res.download(path, exp_id+'.'+datatype, (err) => {
+      return res.download(path, exp_name+'.'+datatype, (err) => {
         cleanupCallback();
       });
     });

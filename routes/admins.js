@@ -2,8 +2,8 @@ var express = require('express');
 var router = express.Router();
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
-var fs = require("fs");
-
+var fs = require('fs');
+const Async = require('async');
 const tmp = require('tmp');
 const Json2csvParser = require('json2csv').Parser;
 const Question = require('../models/questions');
@@ -23,40 +23,50 @@ function prepareFile(req, res, exp, cb){
   .exec((err, pairs) => {
     const sum = (accumulator, currentValue) => accumulator + currentValue;
     const parser = (content) => content == 'on'? "O":String(content);
-    for(i in pairs){
-      Subject.findOne({_id:pairs[i].subject_A._id})
-      .populate('answers')
-      .populate('postq')
-      .exec((err, subject)=>{
-        console.log(subject.score)
-        if(subject.email != 'placeholder'){
-          answers.push(Object.keys(subject).map(function(key){ return subject[key] })
-          .concat(subject.answers.ans_array)
-          .concat(subject.score)
-          .concat(subject.score.reduce(sum))
-          .concat(subject.postq.ans_array.map(parser))
-        )};
-
-      })
-      Subject.findOne({_id:pairs[i].subject_B._id})
-      .populate('answers')
-      .populate('postq')
-      .exec((err, subject)=>{
-        console.log(subject.score)
-        if(subject.email != 'placeholder'){
-          answers.push(Object.keys(subject).map(function(key){ return subject[key] })
-          .concat(subject.answers.ans_array)
-          .concat(subject.score)
-          .concat(subject.score.reduce(sum))
-          .concat(subject.postq.ans_array.map(parser))
-        )};
-      })
-    }
+    Async.each(pairs, (x, fin) => {
+      Async.series([
+        (fin) => {
+          Subject.findOne({_id:x.subject_A._id})
+          .populate('answers')
+          .populate('postq')
+          .exec((err, subject)=>{
+            console.log(subject.score)
+            if(subject.email != 'placeholder'){
+              answers.push(Object.keys(subject).map(function(key){ return subject[key] })
+              .concat(subject.answers.ans_array)
+              .concat(subject.score)
+              .concat(subject.score.reduce(sum))
+              .concat(subject.postq.ans_array.map(parser))
+            )};
+            fin(null);
+          })
+        },
+        (fin) => {
+          Subject.findOne({_id:x.subject_B._id})
+          .populate('answers')
+          .populate('postq')
+          .exec((err, subject)=>{
+            console.log(subject.score)
+            if(subject.email != 'placeholder'){
+              answers.push(Object.keys(subject).map(function(key){ return subject[key] })
+              .concat(subject.answers.ans_array)
+              .concat(subject.score)
+              .concat(subject.score.reduce(sum))
+              .concat(subject.postq.ans_array.map(parser))
+            )};
+            fin(null);
+          })
+        }
+      ],fin)
+    }, (err) => {
+      if(err) return res.json({msg: err})
+      else cb(req, res, answers, exp.name);
+    })
   })
-  setTimeout(cb, 5000, req, res, answers, exp.name);
 }
 
 function saveFile(req, res, answers, exp_name){
+  console.log("CB Invoked")
   const fields = [
     {label:'Character', value:'3.character'},
     {label:'Email', value:'3.email'},

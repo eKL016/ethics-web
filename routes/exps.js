@@ -477,7 +477,7 @@ router.route('/postq/:id')
 router.post('/local/:num', (req, res) => {
   Subjects.find({email: req.body.email}, (err, exist) => {
 
-    if(true){
+    if(exist.length == 0){
       Subjects.create(req.body, (err, subject) => {
         if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: 'Undefined error', msg:'', current_user:req.user});
         else{

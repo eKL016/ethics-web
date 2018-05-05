@@ -150,7 +150,7 @@ router.route('/login')
       })
   });
 
-router.post('/register', (req, res) => {
+/*router.post('/register', (req, res) => {
   User.register(new User(req.body), req.body.password, function(err, admin) {
     admin.name = req.body.name;
     if (err) {
@@ -162,7 +162,7 @@ router.post('/register', (req, res) => {
     return res.json({msg:"success"});
   });
 });
-
+*/
 router.route('/init_exp')
   .get((req, res) => {
     if(req.user === undefined ) return res.redirect("/admin/login");

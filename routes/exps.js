@@ -61,7 +61,7 @@ async function scoring(res, pairs, q_array, exp){
 
         let scoreA = [];
         let scoreB = [];
-        eoq = 3;
+        eoq = 2;
 
         for(var j=0; j<eoq; j++){
 
@@ -69,7 +69,9 @@ async function scoring(res, pairs, q_array, exp){
             scoreB.push(q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]]);
 
         }
-        if(subject_A.answers.ans_array[eoq]>=subject_B.answers.ans_array[eoq]){
+        scoreA.push(subject_A.answers.ans_array[2]? 0 : 10);
+        scoreB.push(subject_B.answers.ans_array[2]? 0 : 10);
+        if(subject_A.answers.ans_array[3]>=subject_B.answers.ans_array[3]){
           scoreA.push(100 - subject_A.answers.ans_array[eoq]);
           scoreB.push(subject_A.answers.ans_array[eoq]);
         }
@@ -145,7 +147,7 @@ router.get('/close/:id/', function(req, res){
                     Math.floor(Math.random()*100)%2 == 0,
                     Math.floor(Math.random()*100)%2 == 0,
                     Math.floor(Math.random()*100)%2 == 0,
-                    Math.floor(Math.random()*15)+30,
+                    Math.floor(Math.random()*20)+30,
                   ]
                 })
                 console.log(answer)
@@ -477,7 +479,7 @@ router.route('/postq/:id')
 router.post('/local/:num', (req, res) => {
   Subjects.find({email: req.body.email}, (err, exist) => {
 
-    if(true){
+    if(exist.length == 0){
       Subjects.create(req.body, (err, subject) => {
         if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: 'Undefined error', msg:'', current_user:req.user});
         else{

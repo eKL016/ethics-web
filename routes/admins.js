@@ -78,10 +78,10 @@ function saveFile(req, res, answers, exp_name){
     {label:'Score', value:'13'},
     {label:'Q1', value:'5'},{label:'Q2', value:'6'},{label:'Q3', value:'7'},{label:'Q4', value:'8'},
     {label:'R1', value:'9'},{label:'R2', value:'10'},{label:'R3', value:'11'},{label:'R4', value:'12'},
-    {label:'P1-1', value:'14'},{label:'P1-2', value:'15'},{label:'P1-3', value:'16'},{label:'P1-4', value:'17'},
-    {label:'P2-1', value:'18'},{label:'P2-2', value:'19'},{label:'P2-3', value:'20'},{label:'P2-4', value:'21'},
-    {label:'P3-1', value:'22'},{label:'P3-2', value:'23'},{label:'P3-3', value:'24'},{label:'P3-4', value:'25'},
-    {label:'P4-1', value:'26'},{label:'P4-2', value:'27'},{label:'P4-3', value:'28'},{label:'P4-4', value:'29'},{label:'P4-5', value:'30'}
+    {label:'P1-1', value:'14'},{label:'P1-2', value:'15'},{label:'P1-3', value:'16'},{label:'P1-4', value:'17'},{label:'P1-5', value:'18'},
+    {label:'P2-1', value:'19'},{label:'P2-2', value:'20'},{label:'P2-3', value:'21'},{label:'P2-4', value:'22'},
+    {label:'P3-1', value:'23'},{label:'P3-2', value:'24'},{label:'P3-3', value:'25'},{label:'P3-4', value:'26'},
+    {label:'P4-1', value:'27'},{label:'P4-2', value:'28'},{label:'P4-3', value:'29'},{label:'P4-4', value:'30'},{label:'P4-5', value:'31'}
   ]
   datatype=req.query.datatype
   const json2csvParser = new Json2csvParser({

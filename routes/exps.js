@@ -146,7 +146,7 @@ router.get('/close/:id/', function(req, res){
                   ans_array:[
                     Math.floor(Math.random()*100)%2 == 0,
                     Math.floor(Math.random()*100)%2 == 0,
-                    Math.floor(Math.random()*100)%2 == 0,
+                    true,
                     Math.floor(Math.random()*20)+30,
                   ]
                 })
@@ -205,7 +205,7 @@ router.get('/end/:id/:force', (req, res) => {
                   ans_array:[
                     Math.floor(Math.random()*100)%2 == 0,
                     Math.floor(Math.random()*100)%2 == 0,
-                    Math.floor(Math.random()*100)%2 == 0,
+                    true,
                     Math.floor(Math.random()*15)+30,
                   ]
                 })
@@ -446,7 +446,7 @@ router.route('/postq/:id')
     Subjects.findOne({_id:req.params.id, finished: false}, (err, subject) => {
       if(err || !subject) return res.render('index', {title: '科技部教學策略', alert: '查無使用者或已經作答完畢！', msg:'', current_user:req.user});
       else{
-        keys = [ 'option-1-0','option-1-1','option-1-2','option-1-3',
+        keys = [ 'option-1-0','option-1-1','option-1-2','option-1-3','option-1-4',
           'option-2-0','option-2-1','option-2-2','option-2-3',
           'option-3-0','option-3-1','option-3-2','option-3-3',
           'option-4-0','option-4-1','option-4-2','option-4-3','option-4-4' ]

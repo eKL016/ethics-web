@@ -42,15 +42,18 @@ async function assign_pair(res, exp, subjects, pair_model){
     else res.redirect('/admin');
   })
 }
-function shuffle(res, exp, subjects, Exp_pair, cb) {
+async function shuffle(res, exp, subjects, Exp_pair, cb) {
   var j, x, i;
-  for (let i = seed.length - 1; i > 0; i--) {
-      j = Math.floor(Math.random() * (i + 1));
-      x = seed[i];
-      seed[i] = seed[j];
-      seed[j] = x;
-      if(i==1) return cb(res, exp, subjects, Exp_pair);
-  }
+  await new Promise((resolve, reject) => {
+    for (let i = seed.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = seed[i];
+        seed[i] = seed[j];
+        seed[j] = x;
+    }
+    resolve()
+  })
+  return cb(res, exp, subjects, Exp_pair);
 }
 
 async function scoring(res, pairs, q_array, exp){
@@ -61,17 +64,20 @@ async function scoring(res, pairs, q_array, exp){
 
         let scoreA = [];
         let scoreB = [];
-        eoq = 2;
+        eoq = 3;
 
         for(var j=0; j<eoq; j++){
-
-            scoreA.push(q_array[j].score[1^subject_B.answers.ans_array[j]][1^subject_A.answers.ans_array[j]]);
-            scoreB.push(q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]]);
-
+            if(j==2){
+              scoreA.push(subject_A.answers.ans_array[2]? 0 : 10);
+              scoreB.push(subject_B.answers.ans_array[2]? 0 : 10);
+            }
+            else{
+              scoreA.push(q_array[j].score[1^subject_B.answers.ans_array[j]][1^subject_A.answers.ans_array[j]]);
+              scoreB.push(q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]]);
+            }
         }
-        scoreA.push(subject_A.answers.ans_array[2]? 0 : 10);
-        scoreB.push(subject_B.answers.ans_array[2]? 0 : 10);
-        if(subject_A.answers.ans_array[3]>=subject_B.answers.ans_array[3]){
+
+        if(subject_A.answers.ans_array[eoq]>=subject_B.answers.ans_array[eoq]){
           scoreA.push(100 - subject_A.answers.ans_array[eoq]);
           scoreB.push(subject_A.answers.ans_array[eoq]);
         }

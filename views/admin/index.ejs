@@ -30,17 +30,19 @@
                     <button type="button" class="ml-auto d-inline btn btn-warning btn-sm text-white" onclick="location.href='/exps/close/<%= unpaired[exp]._id%>'">配對</button>
                   </div>
                   </div>
+
                 </li>
               <%}%>
               <%for (exp in unscored) {%>
                 <li class="list-group-item">
                   <div class="row">
-                  <div class="col-lg-8"><%= unscored[exp].name + " (" + unscored[exp]._id + ")" %></div>
+                  <div class="col-lg-8"><%= unscored[exp].name + " (" + unscored[exp]._id + ")    (" + unscored[exp].finished + "/" + unscored[exp].all+")"%></div>
                   <div class="col-lg-4">
                     <button type="button" class="ml-auto d-inline btn btn-danger btn-sm" onclick="location.href='/exps/end/<%= unscored[exp]._id%>/1'">強制結束</button>
                     <button type="button" class="ml-auto d-inline btn btn-success btn-sm" onclick="location.href='/exps/end/<%= unscored[exp]._id%>/0'">結束並計分</button>
                   </div>
                   </div>
+
                 </li>
               <%}%>
             </ul>
@@ -50,6 +52,8 @@
               <button type="button" class="w-75 mx-auto btn btn-success btn-block" onclick="location.href='/admin/init_exp/'">安排新測驗</button>
               <br>
               <button type="button" class="w-75 mx-auto btn btn-success btn-block" onclick="location.href='/exps/start'">開始現場測驗</button>
+              <br>
+              <button type="button" class="w-75 mx-auto btn btn-success btn-block" onclick="location.href='/exps/status'">測驗報名狀況</button>
               <br>
               <button type="button" class="w-75 mx-auto btn btn-success btn-block" onclick="location.href='/admin/exps'">下載測驗結果</button>
               <br><br>

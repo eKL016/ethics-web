@@ -16,26 +16,32 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 async function assign_pair(res, exp, subjects, pair_model){
   response = []
-  await new Promise((resolve, reject) => {
-    for(let i = 0; i < seed.length-1; i=i+2){
-      pair_model.create({'subject_A': ObjectID(subjects[seed[i]].subject_id), 'subject_B':ObjectID(subjects[seed[i+1]].subject_id), 'Exp':exp}, (err, pair) => {
-        if(err) reject()
-        else{
-        	Subjects.find({_id: ObjectID(subjects[seed[i]].subject_id)}, (err, suba) =>{
-            if(err) reject()
-        	  suba[0].character = 'A'+ String(i/2)
-        	  suba[0].save()
-        	})
-          Subjects.find({_id: ObjectID(subjects[seed[i+1]].subject_id)}, (err, subb) =>{
-            if(err) reject()
-        	  subb[0].character = 'B'+ String(i/2)
-        	  subb[0].save()
-        	})
-        }
-      })
-    }
-    resolve();
-  })
+  try {
+    await new Promise((resolve, reject) => {
+      for(let i = 0; i < seed.length-1; i=i+2){
+        pair_model.create({'subject_A': ObjectID(subjects[seed[i]].subject_id), 'subject_B':ObjectID(subjects[seed[i+1]].subject_id), 'Exp':exp}, (err, pair) => {
+          if(err) reject()
+          else{
+          	Subjects.find({_id: ObjectID(subjects[seed[i]].subject_id)}, (err, suba) =>{
+              if(err) reject()
+          	  suba[0].character = 'A'+ String(i/2)
+          	  suba[0].save()
+          	})
+            Subjects.find({_id: ObjectID(subjects[seed[i+1]].subject_id)}, (err, subb) =>{
+              if(err) reject()
+          	  subb[0].character = 'B'+ String(i/2)
+          	  subb[0].save()
+          	})
+          }
+        })
+      }
+      resolve();
+    })
+  }
+  catch(e){
+    return res.json({msg:e});
+  }
+
   exp.closed = true;
   exp.save((err) => {
     if(err) return res.json({msg:err})
@@ -57,49 +63,54 @@ async function shuffle(res, exp, subjects, Exp_pair, cb) {
 }
 
 async function scoring(res, pairs, q_array, exp){
-  await new Promise((resolve, reject) => {
-    for(let i in pairs){
-    Subjects.findById(pairs[i].subject_A._id, 'answers score').populate('answers').exec((err, subject_A)=>{
-      Subjects.findById(pairs[i].subject_B._id, 'answers score').populate('answers').exec((err, subject_B)=>{
+  try{
+    await new Promise((resolve, reject) => {
+      for(let i in pairs){
+      Subjects.findById(pairs[i].subject_A._id, 'answers score').populate('answers').exec((err, subject_A)=>{
+        Subjects.findById(pairs[i].subject_B._id, 'answers score').populate('answers').exec((err, subject_B)=>{
 
-        let scoreA = [];
-        let scoreB = [];
-        eoq = 3;
+          let scoreA = [];
+          let scoreB = [];
+          eoq = 3;
 
-        for(var j=0; j<eoq; j++){
-            if(j==2){
-              scoreA.push(subject_A.answers.ans_array[2]? 0 : 10);
-              scoreB.push(subject_B.answers.ans_array[2]? 0 : 10);
-            }
-            else{
-              scoreA.push(q_array[j].score[1^subject_B.answers.ans_array[j]][1^subject_A.answers.ans_array[j]]);
-              scoreB.push(q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]]);
-            }
-        }
+          for(var j=0; j<eoq; j++){
+              if(j==2){
+                scoreA.push(subject_A.answers.ans_array[2]? 0 : 10);
+                scoreB.push(subject_B.answers.ans_array[2]? 0 : 10);
+              }
+              else{
+                scoreA.push(q_array[j].score[1^subject_B.answers.ans_array[j]][1^subject_A.answers.ans_array[j]]);
+                scoreB.push(q_array[j].score[1^subject_A.answers.ans_array[j]][1^subject_B.answers.ans_array[j]]);
+              }
+          }
 
-        if(subject_A.answers.ans_array[eoq]>=subject_B.answers.ans_array[eoq]){
-          scoreA.push(100 - subject_A.answers.ans_array[eoq]);
-          scoreB.push(subject_A.answers.ans_array[eoq]);
-        }
-        else{
-          scoreA.push(0);
-          scoreB.push(0);
-        };
+          if(subject_A.answers.ans_array[eoq]>=subject_B.answers.ans_array[eoq]){
+            scoreA.push(100 - subject_A.answers.ans_array[eoq]);
+            scoreB.push(subject_A.answers.ans_array[eoq]);
+          }
+          else{
+            scoreA.push(0);
+            scoreB.push(0);
+          };
 
-        subject_A.score = scoreA;
-        subject_B.score = scoreB;
+          subject_A.score = scoreA;
+          subject_B.score = scoreB;
 
-        subject_A.save((err) => {
-          console.log("Set A")
-        });
-        subject_B.save((err) =>{
-          console.log("Set B")
-        });
+          subject_A.save((err) => {
+            console.log("Set A")
+          });
+          subject_B.save((err) =>{
+            console.log("Set B")
+          });
+        })
       })
-    })
+    }
+    resolve();
+    });
   }
-  resolve();
-  });
+  catch(e){
+    return res.json({msg:e});
+  }
   exp.scored = true;
   exp.save((err) => {
     Subject_queue.remove({ exp_id: exp._id }, (err) => {
@@ -197,7 +208,7 @@ router.get('/end/:id/:force', (req, res) => {
       else if( Number(req.params.force) ){
         if(err) return res.json({msg:"Attemped to close an exp fail"});
         else{
-          Subject_queue.find({'exp_id': exp._id})
+          Subject_queue.find({'exp_id': exp._id, 'valid': true})
           .populate({path:'subject',select:'finished', match:{finished: false}})
           .exec((err, undone) => {
             undone = undone.filter(function(u) {
@@ -242,7 +253,7 @@ router.get('/end/:id/:force', (req, res) => {
       else {
         if(err) return res.json({msg:"Attemped to close an exp fail"});
         else{
-          Subject_queue.find({'exp_id': exp._id})
+          Subject_queue.find({'exp_id': exp._id, 'valid': true})
           .populate({path:'subject',select:'finished', match:{finished: false}})
           .exec((err, undone) => {
             undone = undone.filter(function(u) {
@@ -478,8 +489,27 @@ router.route('/postq/:id')
   })
 
 
-
-
+router.get('/status', (req, res) => {
+  let return_exps = [];
+  let get_exps = Exp.find({closed: false},"name _id").exec();
+  let get_reg = (exps) => {
+    return_exps = exps;
+    p = exps.map((i) => {
+      return Subject_queue.find({exp_id:i._id}).populate("subject").exec()
+    })
+    return Promise.all(p)
+  }
+  get_exps
+  .then(get_reg)
+  .then((subs) => {
+    r = subs.map((i) => {
+      return i.map((j) => {
+        return j.subject;
+      })
+    })
+    return res.render("exps/status",{title: '科技部教學策略', current_user:req.user, exps: return_exps, subjects_list: r});
+  })
+})
 
 
 router.post('/local/:num', (req, res) => {

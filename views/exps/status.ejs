@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include ../partials/base.ejs %>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <% include ../partials/navbar.ejs %>
+    <div class="container">
+      <br><br>
+
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-dark text-white">
+              測驗報名狀態
+            </div>
+            <table class="table table-hover">
+              <thead class="thead-dark">
+                <tr>
+                  <th scope="col">#</th>
+                  <th colspan="6" scope="col">測驗</th>
+                </tr>
+              </thead>
+              <tbody>
+              <%for (i in exps){%>
+
+                  <tr href="#info-<%= i%>" data-toggle="collapse">
+                    <th scope="col"><%= i %></th>
+                    <th scope="col" colspan="6">
+                      <%= exps[i]._id + " (" + exps[i].name +")"%>
+
+                    </th>
+                  </tr>
+
+              </tbody>
+              <tbody class="collapse table-sm" id="info-<%= i %>">
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">學校</th>
+                  <th scope="col">學院</th>
+                  <th scope="col">學系</th>
+                  <th scope="col">年級</th>
+                  <th scope="col">性別</th>
+                </tr>
+
+                <%for (j in subjects_list[i]){%>
+                <tr>
+                  <td><%= j%></td>
+                  <td><%= subjects_list[i][j].email%></td>
+                  <td><%= subjects_list[i][j].school%></td>
+                  <td><%= subjects_list[i][j].college%></td>
+                  <td><%= subjects_list[i][j].department%></td>
+                  <td><%= subjects_list[i][j].grades%></td>
+                  <td><%= subjects_list[i][j].gender? "男":"女"%></td>
+                </tr>
+                <%}%>
+              </tbody>
+              <%}%>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+    </div>
+    <% include ../partials/bootstrap-scripts.ejs %>
+  </body>
+</html>

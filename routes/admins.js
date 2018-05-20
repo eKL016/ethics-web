@@ -11,6 +11,7 @@ const User = require('../models/users');
 const Exp = require('../models/exps');
 const Exp_pair = require('../models/exp_pairs');
 const Subject = require('../models/subjects');
+const Subject_queue = require('../models/subject_queue');
 passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
@@ -107,11 +108,33 @@ function saveFile(req, res, answers, exp_name){
 
 router.get('/', function(req, res, next) {
   if ( req.user ){
-    Exp.find({closed: false, started: {$ne: null} },(err, unpaired) => {
-      Exp.find({closed: true, scored: false}, (err1, unscored) => {
-        if (err || err1 ) return res.json({msg:err})
-        else return res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user, unpaired: unpaired, unscored: unscored})
+
+    let unscored = {};
+    get_unpaired = Exp.find({closed: false, started: {$ne: null} }).exec()
+    get_unscored = Exp.find({closed: true, scored: false}).exec().then(uns => {
+      get_s = uns.map((exp) => {
+        return Subject_queue.find({exp_id: exp._id, valid: true}).populate('subject').exec()
       })
+      unscored = uns;
+      return Promise.all(get_s)
+    })
+    .then((s) => {
+      promises = s.map((item, i) => {
+        unscored[i].all = item.length
+        unscored[i].finished = item.filter((sub) => {
+          return sub.subject.finished
+        }).length
+        return Promise.resolve("Ready")
+      })
+      return Promise.all(promises)
+    })
+
+
+
+    Promise.all([get_unpaired,get_unscored]).then((result) => {
+      return res.render('admin/index', { title: '管理員選單', alert: 0, current_user:req.user, unpaired: result[0], unscored: unscored})
+    },(err) => {
+      return res.json({msg:err})
     })
   }
   else return res.redirect("/admin/login")
